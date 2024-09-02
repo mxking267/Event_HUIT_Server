@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const locationRoutes = require('./src/routes/locationRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const auth = require('./src/middleware/auth');
 
 dotenv.config();
 
@@ -14,7 +16,10 @@ mongoose.connect(process.env.DB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Could not connect to MongoDB...', err));
 
-app.use('/api', locationRoutes);
+app.use(auth)
+
+app.use('/api/v1', locationRoutes);
+app.use('/api/v1', authRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
