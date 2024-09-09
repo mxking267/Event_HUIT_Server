@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const locationRoutes = require('./src/routes/locationRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const auth = require('./src/middleware/auth');
 
@@ -19,6 +20,7 @@ mongoose.connect(process.env.DB_URI)
 app.use(auth)
 
 app.use('/api/v1', locationRoutes);
+app.use('/api/v1', eventRoutes);
 app.use('/api/v1', authRoutes);
 
 app.listen(port, () => {

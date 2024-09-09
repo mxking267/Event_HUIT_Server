@@ -26,5 +26,4 @@ const getAccount = async (req, res) => {
 
 module.exports = {
     createUser, handleLogin, getUser, getAccount
-
 }
