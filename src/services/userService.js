@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 const saltRounds = 10;
 
-const createUserService = async (name, email, password) => {
+const createUserService = async (name, email, password, student_code, lophoc) => {
     try {
         //check user exist
         const user = await User.findOne({ email });
@@ -24,6 +24,8 @@ const createUserService = async (name, email, password) => {
             full_name: name,
             email: email,
             password: hashPassword,
+            student_code: student_code,
+            class: lophoc,
             role: "USER"
         })
         return result;
