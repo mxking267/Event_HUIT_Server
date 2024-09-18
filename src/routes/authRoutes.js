@@ -1,6 +1,7 @@
 const express = require('express');
 const { createUser, handleLogin, getUser,
-    getAccount
+    getAccount,
+    registerEvent
 } = require('../controllers/userController');
 
 
@@ -10,5 +11,6 @@ router.post("/login", handleLogin);
 
 router.get("/user", getUser);
 router.get("/account", getAccount);
+router.patch("/user/register/:id", registerEvent);
 
 module.exports = router;

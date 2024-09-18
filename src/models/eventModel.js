@@ -44,6 +44,10 @@ const eventSchema = new mongoose.Schema({
     ref: 'User', 
     required: true,
   },
+  bonus_points: {
+    type: Number, 
+    required: true,
+  }
 }, {
   timestamps: true, 
 });
