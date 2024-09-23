@@ -21,6 +21,7 @@ const auth = (req, res, next) => {
                 next();
             } catch (error) {
                 return res.status(401).json({
+                    error: error.message,
                     message: "Token bị hết hạn/hoặc không hợp lệ"
                 })
             }

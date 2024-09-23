@@ -9,13 +9,15 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-const port = config.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 // Kết nối MongoDB
 mongoose
-  .connect(config.DB_URI)
+  .connect(process.env.DB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB...", err));
+
+app.use(auth)
 
 app.use(auth)
 
