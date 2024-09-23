@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  class: {
+  className: {
     type: String,
     required: true
   },

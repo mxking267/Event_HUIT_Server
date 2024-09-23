@@ -33,8 +33,9 @@ mongoose
 
 app.use(auth)
 
+app.use(auth)
+
 app.use('/api/v1', locationRoutes)
-app.use('/api/v1', eventRoutes)
 app.use('/api/v1', authRoutes)
 
 app.listen(port, () => {

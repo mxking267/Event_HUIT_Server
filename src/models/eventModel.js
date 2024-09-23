@@ -15,6 +15,10 @@ const eventSchema = new mongoose.Schema(
       ref: 'Location',
       required: true
     },
+    status: {
+      type: String,
+      required: true
+    },
     date_start: {
       type: Date,
       required: true
@@ -69,14 +73,6 @@ const eventRegistrationSchema = new mongoose.Schema({
   qr_code: {
     type: String,
     required: true
-  },
-  check_in_status: {
-    type: Boolean,
-    default: false
-  },
-  check_out_status: {
-    type: Boolean,
-    default: false
   }
 })
 

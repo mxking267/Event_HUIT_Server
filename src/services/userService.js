@@ -7,11 +7,11 @@ const jwt = require('jsonwebtoken')
 const saltRounds = 10
 
 const createUserService = async (
-  name,
   email,
   password,
   student_code,
-  studentClass
+  className,
+  full_name
 ) => {
   try {
     //check user exist
@@ -27,11 +27,11 @@ const createUserService = async (
     console.log(hashPassword)
     //save user to database
     let result = await User.create({
-      full_name: name,
       email: email,
       password: hashPassword,
       student_code: student_code,
-      class: studentClass,
+      className: className,
+      full_name: full_name,
       role: 'USER'
     })
     return result
