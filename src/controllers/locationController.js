@@ -1,6 +1,5 @@
 const Location = require("../models/locationModel");
 
-// Tạo địa điểm mới
 exports.createLocation = async (req, res) => {
   try {
     const location = new Location(req.body);
@@ -11,7 +10,6 @@ exports.createLocation = async (req, res) => {
   }
 };
 
-// Lấy tất cả địa điểm
 exports.getAllLocations = async (req, res) => {
   try {
     const locations = await Location.find({});
@@ -21,7 +19,6 @@ exports.getAllLocations = async (req, res) => {
   }
 };
 
-// Lấy địa điểm theo ID
 exports.getLocationById = async (req, res) => {
   try {
     const location = await Location.findById(req.params.id);
@@ -34,7 +31,6 @@ exports.getLocationById = async (req, res) => {
   }
 };
 
-// Cập nhật địa điểm
 exports.updateLocation = async (req, res) => {
   try {
     const location = await Location.findByIdAndUpdate(req.params.id, req.body, {
@@ -50,7 +46,6 @@ exports.updateLocation = async (req, res) => {
   }
 };
 
-// Xóa địa điểm
 exports.deleteLocation = async (req, res) => {
   try {
     const location = await Location.findByIdAndDelete(req.params.id);
