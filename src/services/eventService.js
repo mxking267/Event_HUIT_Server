@@ -65,31 +65,36 @@ const getEventUserService = async (userId, find, limitItem, skip) => {
   const facultyId = user.faculty_id
   const course = await Course.findById(user.course_id)
 
-  const modifiedFind = {
-    ...find,
-    faculty_id: facultyId
-  }
-
   const endDateCourse = new Date(course.endYear, 6, 31)
   const currentDate = new Date()
   if (currentDate <= endDateCourse) {
-    const events = await Event.find(modifiedFind)
+    const events = await Event.find(find)
       .sort({ date: -1 })
       .limit(limitItem)
       .skip(skip)
 
-    const modifiedEvents = events.map((event) => {
-      const userObjectId = new ObjectId(userId)
-      const isRegistered = event.participants.some((part) => {
-        return part.user_id.equals(userObjectId)
-      })
+    const modifiedEvents = events
+      .map((event) => {
+        const userObjectId = new ObjectId(userId)
+        const isRegistered = event.participants.some((part) => {
+          return part.user_id.equals(userObjectId)
+        })
 
-      return {
-        ...event.toObject(),
-        participants: undefined,
-        isRegistered
-      }
-    })
+        const isValidFaculty =
+          !event.faculty_id || event.faculty_id === facultyId
+
+        if (isValidFaculty) {
+          return {
+            ...event.toObject(),
+            participants: undefined,
+            isRegistered
+          }
+        }
+
+        // Nếu faculty_id của event không hợp lệ, không trả sự kiện này
+        return null
+      })
+      .filter((event) => event !== null)
     return modifiedEvents
   } else {
     return null

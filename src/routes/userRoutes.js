@@ -1,27 +1,29 @@
 const express = require('express')
 const {
-  createUser,
-  forgotPassword,
-  otpPassword,
   resetPassword,
   getUser,
   getManager,
   trainingPointOnSemester,
   getRegisteredEvents,
-  registerUser
+  createUser,
+  createManager,
+  getUsers,
+  updateManager,
+  updateUser
 } = require('../controllers/userController')
 
 const authAdmin = require('../middleware/authAdmin')
 
 const router = express.Router()
 router.get('/', authAdmin, getUser)
-router.post('/', authAdmin, registerUser)
+router.post('/', authAdmin, createUser)
 router.get('/manager', authAdmin, getManager)
-router.post('/manager', authAdmin, createUser)
-router.post('/password/forgot', forgotPassword)
-router.post('/password/otp', otpPassword)
+router.post('/manager', authAdmin, createManager)
 router.post('/password/reset', resetPassword)
+router.patch('/:id', updateUser)
+router.patch('/manager/:id', updateManager)
 router.get('/trainingPointOnSemester/:userId', trainingPointOnSemester)
 router.get('/eventRegistered/:userId', getRegisteredEvents)
+router.get('/student', getUsers)
 
 module.exports = router

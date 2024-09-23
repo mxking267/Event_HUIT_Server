@@ -1,16 +1,15 @@
-const { createUserService } = require('../services/userService')
+const {
+  createUserService,
+  createManagerService
+} = require('../services/userService')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
 const User = require('../models/userModel')
-const ForgotPassword = require('../models/forgotPasswordModel')
 const { Course } = require('../models/courseModel')
-
-const generateHelper = require('../utils/generateRandomNumber')
-const sendMailHelper = require('../utils/sendMail')
 const { Event } = require('../models/eventModel')
 
-const registerUser = async (req, res) => {
+const createUser = async (req, res) => {
   try {
     console.log(req.body)
     const {
@@ -22,6 +21,20 @@ const registerUser = async (req, res) => {
       faculty_id,
       course_id
     } = req.body
+
+    // Kiểm tra email trùng lặp
+    const existingEmail = await User.findOne({ email })
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email đã tồn tại!' })
+    }
+
+    // Kiểm tra student_code trùng lặp
+    const existingStudentCode = await User.findOne({ student_code })
+    if (existingStudentCode) {
+      return res.status(400).json({ message: 'Mã sinh viên đã tồn tại!' })
+    }
+
+    // Nếu không trùng, tiếp tục tạo người dùng
     const data = await createUserService(
       email,
       password,
@@ -32,6 +45,18 @@ const registerUser = async (req, res) => {
       faculty_id,
       course_id
     )
+
+    return res.status(200).json(data)
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const createManager = async (req, res) => {
+  try {
+    const { email, password, full_name } = req.body
+    const data = await createManagerService(email, password, full_name)
     return res.status(200).json(data)
   } catch (error) {
     console.log(error)
@@ -39,14 +64,97 @@ const registerUser = async (req, res) => {
   }
 }
 
-const createUser = async (req, res) => {
+const updateUser = async (req, res) => {
   try {
-    const { email, password, full_name } = req.body
-    const data = await createUserService(email, password, full_name, 'MANAGER')
-    return res.status(200).json(data)
+    const { id } = req.params // User ID from URL parameters
+    const {
+      email,
+      password,
+      student_code,
+      class_name,
+      full_name,
+      faculty_id,
+      course_id
+    } = req.body
+
+    // Check if the user exists
+    const user = await User.findById(id)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found!' })
+    }
+
+    // Check if the email already exists (excluding the current user)
+    const existingEmail = await User.findOne({ email, _id: { $ne: id } })
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already exists!' })
+    }
+
+    // Check if the student_code already exists (excluding the current user)
+    const existingStudentCode = await User.findOne({
+      student_code,
+      _id: { $ne: id }
+    })
+    if (existingStudentCode) {
+      return res.status(400).json({ message: 'Student code already exists!' })
+    }
+
+    // Update user fields
+    user.email = email || user.email
+    user.password = password ? await bcrypt.hash(password, 10) : user.password
+    user.student_code = student_code || user.student_code
+    user.class_name = class_name || user.class_name
+    user.full_name = full_name || user.full_name
+    user.faculty_id = faculty_id || user.faculty_id
+    user.course_id = course_id || user.course_id
+
+    // Save updated user to database
+    await user.save()
+
+    res.status(200).json({ message: 'User updated successfully!', data: user })
   } catch (error) {
-    console.log(error)
-    return res.status(500).json('Internal server error')
+    console.error(error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const updateManager = async (req, res) => {
+  try {
+    const { managerId } = req.params // Manager ID from URL parameters
+    const { email, password, full_name } = req.body
+
+    // Check if the manager exists
+    const manager = await User.findById(managerId)
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found!' })
+    }
+
+    // Ensure the user has the 'MANAGER' role
+    if (manager.role !== 'MANAGER') {
+      return res.status(400).json({ message: 'This user is not a manager!' })
+    }
+
+    // Check if the email already exists (excluding the current manager)
+    const existingEmail = await User.findOne({ email, _id: { $ne: managerId } })
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already exists!' })
+    }
+
+    // Update manager fields
+    manager.email = email || manager.email
+    manager.password = password
+      ? await bcrypt.hash(password, 10)
+      : manager.password
+    manager.full_name = full_name || manager.full_name
+
+    // Save updated manager to database
+    await manager.save()
+
+    res
+      .status(200)
+      .json({ message: 'Manager updated successfully!', data: manager })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Internal server error' })
   }
 }
 
@@ -95,6 +203,67 @@ const getUser = async (req, res) => {
   }
 }
 
+const getStudents = async (req, res) => {
+  try {
+    const find = {}
+
+    // Filter by search keyword
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.$or = [
+        { full_name: regex },
+        { email: regex },
+        { student_code: regex }
+      ]
+    }
+
+    // Filter by faculty_id
+    if (req.query.faculty_id) {
+      find.faculty_id = req.query.faculty_id
+    }
+
+    // Filter by course_id
+    if (req.query.course_id) {
+      find.course_id = req.query.course_id
+    }
+
+    let limitItem = 8 // Default items per page
+    let page = 1 // Default page number
+
+    if (req.query.page) {
+      page = parseInt(req.query.page, 10) // Parse page number
+    }
+
+    if (req.query.limitItem) {
+      limitItem = parseInt(req.query.limitItem, 10) // Parse limit
+    }
+
+    const skip = (page - 1) * limitItem
+
+    // Count total users
+    const totalUsers = await User.countDocuments(find)
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalUsers / limitItem)
+
+    // Fetch users with pagination
+    const users = await User.find(find)
+      .limit(limitItem)
+      .skip(skip)
+      .sort({ createdAt: -1 }) // Sort by creation date descending
+
+    res.status(200).json({
+      data: users,
+      currentPage: page,
+      totalPages,
+      totalUsers
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
 const getManager = async (req, res) => {
   try {
     const find = {}
@@ -134,85 +303,6 @@ const getManager = async (req, res) => {
     console.log(error)
     return res.status(500).json('Internal server error')
   }
-}
-
-const forgotPassword = async (req, res) => {
-  const email = req.body.email
-  const existUser = await User.findOne({
-    email: email
-  })
-
-  if (!existUser) {
-    res.json({
-      code: 'error',
-      message: 'Email không tồn tại!'
-    })
-    return
-  }
-
-  const existEmailInForgotPassword = await ForgotPassword.findOne({
-    email: email
-  })
-
-  if (!existEmailInForgotPassword) {
-    const otp = generateHelper.generateRandomNumber(6)
-    const data = {
-      email: email,
-      otp: otp,
-      expireAt: Date.now() + 5 * 60 * 1000
-    }
-
-    const record = new ForgotPassword(data)
-    await record.save()
-
-    const subject = 'Xác thực mã OTP'
-    const text = `Mã xác thực của bạn là <b>${otp}</b>. Mã OTP có hiệu lực trong vòng 5 phút, vui lòng không cung cấp mã OTP cho bất kỳ ai.`
-    sendMailHelper.sendMail(email, subject, text)
-  }
-
-  res.json({
-    code: 'success',
-    message: 'Gửi mã OTP thành công!'
-  })
-}
-
-const otpPassword = async (req, res) => {
-  const email = req.body.email
-  const otp = req.body.otp
-
-  const existRecord = await ForgotPassword.findOne({
-    email: email,
-    otp: otp
-  })
-
-  if (!existRecord) {
-    res.json({
-      code: 'error',
-      message: 'Mã OTP không hợp lệ!'
-    })
-    return
-  }
-
-  const user = await User.findOne({
-    email: email
-  }).select('email full_name')
-
-  //create an access token
-  const payload = {
-    email: user.email,
-    full_name: user.full_name
-  }
-
-  const access_token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
-  })
-
-  res.json({
-    code: 'success',
-    message: 'Mã OTP hợp lệ!',
-    token: access_token,
-    user: payload
-  })
 }
 
 const resetPassword = async (req, res) => {
@@ -368,14 +458,10 @@ const getRegisteredEvents = async (req, res) => {
       page = req.query.page
     }
     const skip = (page - 1) * limitItem
-
-    const totalEvent = eventIds.length
-    const totalPages = Math.ceil(totalEvent / limitItem)
     const events = await Event.find(find)
       .limit(limitItem)
       .skip(skip)
       .sort({ date: -1 })
-
     const eventsWithAttendanceStatus = events.map((event) => {
       const participant = event.participants.find(
         (p) => p.user_id.toString() === userId
@@ -386,6 +472,9 @@ const getRegisteredEvents = async (req, res) => {
         participants: undefined
       }
     })
+
+    const totalEvent = eventsWithAttendanceStatus.length
+    const totalPages = Math.ceil(totalEvent / limitItem)
 
     res.status(200).json({
       data: eventsWithAttendanceStatus,
@@ -398,13 +487,14 @@ const getRegisteredEvents = async (req, res) => {
 }
 
 module.exports = {
-  registerUser,
   createUser,
+  createManager,
   getUser,
   getManager,
-  forgotPassword,
-  otpPassword,
   resetPassword,
   trainingPointOnSemester,
-  getRegisteredEvents
+  getRegisteredEvents,
+  getUsers: getStudents,
+  updateManager,
+  updateUser
 }

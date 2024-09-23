@@ -11,7 +11,8 @@ const {
   getListParticipant,
   registeredEvents,
   cancelRegisterEvent,
-  updateEventStatus
+  updateEventStatus,
+  addUserToEvent
 } = require('../controllers/eventController')
 
 const authAdmin = require('../middleware/authAdmin')
@@ -21,7 +22,7 @@ const multer = require('multer')
 const storage = multer.memoryStorage()
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // Giới hạn kích thước file 50MB
+  limits: { fileSize: 50 * 1024 * 1024 } // Giới hạn kích thước file 50MB,
 })
 
 const router = express.Router()
@@ -51,5 +52,6 @@ router.patch('/register/:id', registerEvent) // Đăng ký sự kiện
 router.patch('/cancel-register/:id', cancelRegisterEvent) // Huỷ đăng ký sự kiện
 router.post('/check-in-out', authAdminManager, checkInCheckOut) // Check-in sự kiện
 router.put('/:id/status', authAdminManager, updateEventStatus) // Check-in sự kiện
+router.post('/:id/add-user', addUserToEvent)
 
 module.exports = router

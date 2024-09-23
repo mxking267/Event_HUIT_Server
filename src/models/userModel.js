@@ -36,11 +36,15 @@ const userSchema = new mongoose.Schema({
   events_registered: [eventRegistrationSchema],
   faculty_id: {
     type: String,
-    required: true
+    required: function () {
+      return this.role === 'USER'
+    }
   },
   course_id: {
     type: String,
-    required: true
+    required: function () {
+      return this.role === 'USER'
+    }
   },
   role: {
     type: String,

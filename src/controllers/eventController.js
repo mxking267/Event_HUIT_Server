@@ -62,7 +62,7 @@ const getAllEvents = async (req, res) => {
         res.status(200).json({
           data: events,
           currentPage: page,
-          totalPages: Math.ceil(totalItem / limitItem)
+          totalPages: Math.ceil(events.length / limitItem)
         })
       }
     }
@@ -167,14 +167,27 @@ const getEventById = async (req, res) => {
 
 const registerEvent = async (req, res) => {
   try {
-    const { _id: userId } = req.user
+    const { _id: userId, full_name, email } = req.user
+    console.log(req.user)
     const eventId = req.params.id
     if (userId && eventId) {
       const qr_code_cki = await QRCode.toDataURL(
-        JSON.stringify({ userId, eventId, usedFor: 'CHECK_IN' })
+        JSON.stringify({
+          userId,
+          eventId,
+          usedFor: 'CHECK_IN',
+          full_name,
+          email
+        })
       )
       const qr_code_cko = await QRCode.toDataURL(
-        JSON.stringify({ userId, eventId, usedFor: 'CHECK_OUT' })
+        JSON.stringify({
+          userId,
+          eventId,
+          usedFor: 'CHECK_OUT',
+          full_name,
+          email
+        })
       )
 
       const addDataEventRegistration = {
@@ -250,6 +263,80 @@ const updateEventStatus = async (req, res) => {
   } catch (error) {
     console.error(error)
     return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+const addUserToEvent = async (req, res) => {
+  try {
+    const { eventId, userId } = req.body
+
+    // Kiểm tra thông tin đầu vào
+    if (!eventId || !userId) {
+      return res
+        .status(400)
+        .json({ message: 'Event ID and User ID are required' })
+    }
+
+    // Kiểm tra sự tồn tại của sự kiện
+    const event = await Event.findById(eventId)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' })
+    }
+
+    // Kiểm tra sự tồn tại của user
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // Kiểm tra user đã đăng ký sự kiện chưa
+    const isAlreadyRegistered = user.events_registered.some(
+      (registeredEvent) => registeredEvent.event_id.toString() === eventId
+    )
+
+    if (isAlreadyRegistered) {
+      return res
+        .status(400)
+        .json({ message: 'User has already registered for this event' })
+    }
+
+    // Kiểm tra sự kiện đã có user trong danh sách participants chưa
+    const isAlreadyParticipant = event.participants.some(
+      (participant) => participant.user_id.toString() === userId
+    )
+
+    if (isAlreadyParticipant) {
+      return res
+        .status(400)
+        .json({ message: 'User is already a participant in this event' })
+    }
+
+    // Thêm user vào danh sách participants của sự kiện
+    event.participants.push({
+      user_id: userId,
+      check_in_status: false,
+      check_out_status: false
+    })
+
+    // Thêm event vào danh sách events_registered của user
+    user.events_registered.push({
+      event_id: eventId,
+      registration_date: new Date(),
+      status: 'PENDING'
+    })
+
+    // Lưu thay đổi vào database
+    await event.save()
+    await user.save()
+
+    return res.status(200).json({
+      message: 'User successfully added to event',
+      event,
+      user
+    })
+  } catch (error) {
+    console.error('Error adding user to event:', error)
+    return res.status(500).json({ message: 'Internal server error', error })
   }
 }
 
@@ -428,5 +515,6 @@ module.exports = {
   registeredEvents,
   cancelRegisterEvent,
   getAllParticipant,
-  updateEventStatus
+  updateEventStatus,
+  addUserToEvent
 }

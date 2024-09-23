@@ -37,11 +37,34 @@ const createUserService = async (
       })
     } else {
       result = await User.create({
+        full_name,
         email,
         password: hashPassword,
         role: 'MANAGER'
       })
     }
+    return result
+  } catch (error) {
+    console.log(error)
+    return null
+  }
+}
+
+const createManagerService = async (email, password, full_name) => {
+  try {
+    const user = await User.findOne({ email })
+    if (user) {
+      console.log(`>>> user exist, chọn 1 email khác: ${email}`)
+      return null
+    }
+
+    const hashPassword = await bcrypt.hash(password, saltRounds)
+    const result = await User.create({
+      email,
+      password: hashPassword,
+      full_name,
+      role: 'MANAGER'
+    })
     return result
   } catch (error) {
     console.log(error)
@@ -60,5 +83,6 @@ const getUserService = async () => {
 }
 module.exports = {
   createUserService,
-  getUserService
+  getUserService,
+  createManagerService
 }
