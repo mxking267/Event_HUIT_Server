@@ -15,10 +15,10 @@ const eventSchema = new mongoose.Schema(
       ref: 'Location',
       required: true
     },
-    status: {
+    type: {
       type: String,
-      enum: ['INITIAL', 'HAPPENING', 'FINISHED', 'STOPPED'],
-      default: 'PENDING'
+      enum: ['SCIENTIFIC_RESEARCH', 'MOVEMENT', 'SEMINAR'],
+      require: true
     },
     date: {
       type: Date,

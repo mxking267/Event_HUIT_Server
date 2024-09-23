@@ -28,6 +28,28 @@ const getAllEvents = async (req, res) => {
       find.name = regex
     }
 
+    if (req.query.type) {
+      find.type = req.query.type
+    }
+
+    if (req.query.status) {
+      const currentDate = new Date()
+      if (req.query.status === 'upcoming') {
+        find.date = { $gte: currentDate } // Sự kiện sắp diễn ra
+      } else if (req.query.status === 'past') {
+        find.date = { $lt: currentDate } // Sự kiện đã diễn ra
+      }
+      // Nếu là 'all', không thêm điều kiện lọc theo ngày
+    }
+
+    if (req.query.faculty_id) {
+      if (req.query.faculty_id === 'all') {
+        find.faculty_id = null // Toàn trường
+      } else {
+        find.faculty_id = req.query.faculty_id
+      }
+    }
+
     // Pagination
     let limitItem = 8
     let page = 1
@@ -344,7 +366,6 @@ const addUserToEvent = async (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const event = new Event(req.body)
-    event.status = 'INITIAL'
     await event.save()
     res.status(201).json(event)
   } catch (error) {

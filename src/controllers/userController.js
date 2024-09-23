@@ -424,7 +424,7 @@ const trainingPointOnSemester = async (req, res) => {
         (sum, event) =>
           event.attendanceStatus === 'CHECKED_OUT'
             ? sum + (event.bonus_points || 0)
-            : 0,
+            : sum,
         0
       )
 

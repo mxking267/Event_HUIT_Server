@@ -53,6 +53,7 @@ const checkInCheckOutService = async (eventId, userId, usedFor) => {
 
 const getEventAdminService = async (find, limitItem, skip) => {
   const events = await Event.find(find)
+    .populate('faculty_id', 'name')
     .sort({ date: -1 })
     .limit(limitItem)
     .skip(skip)
@@ -69,9 +70,12 @@ const getEventUserService = async (userId, find, limitItem, skip) => {
   const currentDate = new Date()
   if (currentDate <= endDateCourse) {
     const events = await Event.find(find)
+      .populate('faculty_id', 'name')
       .sort({ date: -1 })
       .limit(limitItem)
       .skip(skip)
+
+    console.log(events)
 
     const modifiedEvents = events
       .map((event) => {
