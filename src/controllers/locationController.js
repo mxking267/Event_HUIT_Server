@@ -45,6 +45,7 @@ exports.updateLocation = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+// Xóa địa điểm theo ID
 
 exports.deleteLocation = async (req, res) => {
   try {
