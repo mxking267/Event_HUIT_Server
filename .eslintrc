@@ -1,5 +1,13 @@
 {
-    "globals": {
-        "process": true
-      }
+   "globals": {
+    "process": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "quotes": ["error", "single"], // Đặt quy tắc cho dấu nháy đơn
+    "prettier/prettier": ["error", { "singleQuote": true }] // Đảm bảo Prettier sử dụng nháy đơn
+  }
 }
