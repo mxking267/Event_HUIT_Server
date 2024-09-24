@@ -5,7 +5,7 @@ deployment:
     - export DEPLOYPATH=/home/eventhui/node/
 
     # Sao chép các tệp cần thiết vào thư mục triển khai
-    - /bin/cp -R /home/example/repositories/Event_HUIT_Server/* $DEPLOYPATH
+    - /bin/cp -R /home/eventhui/repositories/Event_HUIT_Server/* $DEPLOYPATH
 
     # Chạy lệnh để khởi động ứng dụng Node.js
     - cd $DEPLOYPATH
