@@ -70,14 +70,6 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  check_in_status: {
-    type: Boolean,
-    default: false
-  },
-  check_out_status: {
-    type: Boolean,
-    default: false
-  }
 })
 
 const Event = mongoose.model('Event', eventSchema)
