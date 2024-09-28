@@ -7,7 +7,13 @@ const {
 const createUser = async (req, res) => {
   const { email, password, student_code, className, full_name } = req.body
   console.log(req.body)
-  const data = await createUserService(email, password, student_code, className, full_name);
+  const data = await createUserService(
+    email,
+    password,
+    student_code,
+    className,
+    full_name
+  )
   return res.status(200).json(data)
 }
 

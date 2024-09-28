@@ -69,7 +69,7 @@ const eventRegistrationSchema = new mongoose.Schema({
   qr_code: {
     type: String,
     required: true
-  },
+  }
 })
 
 const Event = mongoose.model('Event', eventSchema)
