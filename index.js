@@ -1,6 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
+const cors = require('cors')
 
 const locationRoutes = require('./src/routes/locationRoutes')
 const eventRoutes = require('./src/routes/eventRoutes')
@@ -10,6 +11,7 @@ const auth = require('./src/middleware/auth')
 dotenv.config()
 
 const app = express()
+app.use(cors())
 app.use(express.json())
 const port = process.env.PORT || 8080
 
