@@ -20,7 +20,7 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
       return { message: 'User not registered for the event' }
     }
 
-    if (status == "checkin") {
+    if (status == 'checkin') {
       if (participant.check_in_status) {
         return { message: 'User has already checked in' }
       }
@@ -35,7 +35,7 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
       await event.save()
       return { message: 'Check-out successful' }
     }
-    
+
     // event.bonus_points = 4; // apply to the old event
   } catch (error) {
     console.log(error)

@@ -1,4 +1,4 @@
-const Location = require('../models/locationModel')
+const Location = require('../../models/locationModel')
 
 const createLocation = async (req, res) => {
   try {
