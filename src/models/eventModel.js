@@ -15,6 +15,10 @@ const eventSchema = new mongoose.Schema(
       ref: 'Location',
       required: true
     },
+    status:{
+      type: String,
+      required: true
+    },
     date_start: {
       type: Date,
       required: true

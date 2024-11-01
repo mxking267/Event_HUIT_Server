@@ -1,8 +1,4 @@
 const { Event } = require('../../models/eventModel')
-const User = require('../../models/userModel')
-const QRCode = require('qrcode')
-const { checkInCheckOutService } = require('../../services/eventService')
-
 
 // Tạo sự kiện mới
 const createEvent = async (req, res) => {
@@ -66,7 +62,6 @@ const deleteEvent = async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 }
-
 
 module.exports = {
   createEvent,
