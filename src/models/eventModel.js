@@ -15,7 +15,7 @@ const eventSchema = new mongoose.Schema(
       ref: 'Location',
       required: true
     },
-    status:{
+    status: {
       type: String,
       required: true
     },

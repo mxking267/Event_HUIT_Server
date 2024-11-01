@@ -8,18 +8,18 @@ const index = async (req, res) => {
     // Search
     const find = {}
     if (req.query.status) {
-      find.status = req.query.status;
+      find.status = req.query.status
     }
 
     if (req.query.keyword) {
-      const regex = new RegExp(req.query.keyword, "i");
-      find.name = regex;
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.name = regex
     }
 
     if (req.query.date) {
-      const date = new Date(req.query.date); 
-      find.date_start = { $lte: date }; 
-      find.date_end = { $gte: date };  
+      const date = new Date(req.query.date)
+      find.date_start = { $lte: date }
+      find.date_end = { $gte: date }
     }
 
     if (req.query.locationId) {
@@ -27,29 +27,25 @@ const index = async (req, res) => {
     }
     // End Search
 
-    // Pagination 
-    let limitItem = 4;
-    let page = 1;
+    // Pagination
+    let limitItem = 4
+    let page = 1
 
     if (req.query.page) {
-      page = req.query.page;
+      page = req.query.page
     }
 
     if (req.query.limitItem) {
-      limitItem = req.query.limitItem;
+      limitItem = req.query.limitItem
     }
 
-    const skip = (page - 1) * limitItem;
-    // End Pagination 
-
+    const skip = (page - 1) * limitItem
+    // End Pagination
 
     console.log(find)
-    const events = await Event
-      .find(find)
-      .limit(limitItem)
-      .skip(skip)
+    const events = await Event.find(find).limit(limitItem).skip(skip)
 
-    res.status(200).json(events);
+    res.status(200).json(events)
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')
