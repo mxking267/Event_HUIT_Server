@@ -2,13 +2,14 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
 const auth = (req, res, next) => {
-  if (req.originalUrl === '/api/v1/'){
+  if (req.originalUrl === '/api/v1/') {
     next()
   }
 
-  const white_lists = ['/', '/register', '/login']
+  const white_lists = ['/', '/register', '/login', '/password/forgot', '/password/otp', '/password/reset']
 
   if (white_lists.find((item) => '/api/v1/auth' + item === req.originalUrl)) {
+    console.log(req.originalUrl)
     next()
   } 
   else {
@@ -31,7 +32,8 @@ const auth = (req, res, next) => {
           message: 'Token bị hết hạn/hoặc không hợp lệ'
         })
       }
-    } else {
+    } 
+    else {
       return res.status(401).json({
         message: 'Bạn chưa truyền Access Token ở header/Hoặc token bị hết hạn'
       })
