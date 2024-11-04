@@ -5,6 +5,7 @@ const cors = require('cors')
 
 const routeAdmin = require("./src/routes/admin/indexRoute");
 const routeClient = require("./src/routes/client/indexRoute");
+const auth = require('./src/middleware/auth')
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ mongoose
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Could not connect to MongoDB...', err))
 
+app.use(auth)
 routeClient(app);
 routeAdmin(app);
 
