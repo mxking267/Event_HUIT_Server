@@ -59,7 +59,6 @@ const eventSchema = new mongoose.Schema(
   }
 )
 
-// Schema for event registration
 const eventRegistrationSchema = new mongoose.Schema({
   event_id: {
     type: mongoose.Schema.Types.ObjectId,

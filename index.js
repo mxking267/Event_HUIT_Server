@@ -2,11 +2,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
-
-const locationRoutes = require('./src/routes/locationRoutes')
-const eventRoutes = require('./src/routes/eventRoutes')
-const authRoutes = require('./src/routes/authRoutes')
 const auth = require('./src/middleware/auth')
+const apiRoutes = require('./src/routes')
 
 dotenv.config()
 
@@ -32,11 +29,7 @@ mongoose
   .catch((err) => console.error('Could not connect to MongoDB...', err))
 
 app.use(auth)
-
-app.use(auth)
-
-app.use('/api/v1', locationRoutes)
-app.use('/api/v1', authRoutes)
+app.use('/api/v1', apiRoutes)
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port} with cors enable`)

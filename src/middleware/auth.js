@@ -2,7 +2,14 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
 const auth = (req, res, next) => {
-  const white_lists = ['/', '/register', '/login']
+  const white_lists = [
+    '/',
+    '/auth/register',
+    '/auth/login',
+    '/auth/password/forgot',
+    '/auth/password/otp',
+    '/auth/password/reset'
+  ]
   if (white_lists.find((item) => '/api/v1' + item === req.originalUrl)) {
     next()
   } else {
@@ -15,7 +22,7 @@ const auth = (req, res, next) => {
         req.user = {
           email: decoded.email,
           name: decoded.name,
-          createdBy: 'hoidanit'
+          createdBy: 'huit'
         }
         console.log('>>> check token: ', decoded)
         next()

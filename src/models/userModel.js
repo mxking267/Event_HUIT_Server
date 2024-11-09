@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const { eventRegistrationSchema } = require('./eventModel')
 
-// User Schema
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -20,7 +19,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  className: {
+  class_name: {
     type: String,
     required: true
   },
@@ -28,11 +27,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  events_registered: [eventRegistrationSchema], // Embedded event registration schema
+  events_registered: [eventRegistrationSchema],
   role: {
     type: String,
-    enum: ['USER', 'MANAGER', 'ADMIN'], // Role can be 'user', 'manager', or 'admin'
-    default: 'USER' // Default role is 'user'
+    enum: ['USER', 'MANAGER', 'ADMIN'],
+    default: 'USER'
   }
 })
 

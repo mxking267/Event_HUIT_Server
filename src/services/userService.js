@@ -10,7 +10,7 @@ const createUserService = async (
   email,
   password,
   student_code,
-  className,
+  class_name,
   full_name
 ) => {
   try {
@@ -27,11 +27,11 @@ const createUserService = async (
     console.log(hashPassword)
     //save user to database
     let result = await User.create({
-      email: email,
+      email,
       password: hashPassword,
-      student_code: student_code,
-      className: className,
-      full_name: full_name,
+      student_code,
+      class_name,
+      full_name,
       role: 'USER'
     })
     return result
