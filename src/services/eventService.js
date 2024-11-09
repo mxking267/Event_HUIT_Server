@@ -1,5 +1,7 @@
 const { Event } = require('../models/eventModel')
 const UserModel = require('../models/userModel')
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId
 
 const checkInCheckOutService = async (eventId, studentCode, status) => {
   try {
@@ -43,6 +45,59 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
   }
 }
 
+const getEventService = async (role, userId, find, limitItem, skip) => {
+  const events = await Event.find(find).limit(limitItem).skip(skip)
+
+  if (role === 'ADMIN' || role === 'MANAGER') {
+    return events
+  } else {
+    const modifiedEvents = events.map((event) => {
+      const userObjectId = new ObjectId(userId)
+      const isRegistered = event.participants.some((part) => {
+        console.log('-----------------------')
+        console.log(userObjectId)
+        console.log(part.user_id)
+        console.log(part.user_id.equals(userObjectId))
+        console.log('-----------------------')
+
+        return part.user_id.equals(userObjectId)
+      })
+
+      return {
+        ...event.toObject(),
+        participants: undefined,
+        isRegistered
+      }
+    })
+
+    return modifiedEvents
+  }
+}
+
+const getUserQRCodeForEvent = async (userId, eventId) => {
+  try {
+    const user = await UserModel.findById(userId)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    const eventObjectId = new ObjectId(eventId)
+    const qr = user.events_registered.find((ev) =>
+      ev.event_id.equals(eventObjectId)
+    )
+
+    if (!qr) {
+      throw new Error('Cannot find QR Code')
+    }
+    return qr.qr_code
+  } catch (error) {
+    console.error('Error fetching QR code:', error)
+    throw error
+  }
+}
+
 module.exports = {
-  checkInCheckOutService
+  checkInCheckOutService,
+  getEventService,
+  getUserQRCodeForEvent
 }

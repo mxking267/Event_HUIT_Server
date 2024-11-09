@@ -1,7 +1,11 @@
 const { Event } = require('../models/eventModel')
 const User = require('../models/userModel')
 const QRCode = require('qrcode')
-const { checkInCheckOutService } = require('../services/eventService')
+const {
+  checkInCheckOutService,
+  getEventService,
+  getUserQRCodeForEvent
+} = require('../services/eventService')
 
 // Check-in sự kiện
 const checkInCheckOut = async (req, res) => {
@@ -16,7 +20,6 @@ const checkInCheckOut = async (req, res) => {
   }
 }
 
-// Lấy tất cả sự kiện
 const getAllEvents = async (req, res) => {
   try {
     const find = {}
@@ -55,10 +58,15 @@ const getAllEvents = async (req, res) => {
     const skip = (page - 1) * limitItem
     // End Pagination
 
-    console.log(find)
-    const events = await Event.find(find).limit(limitItem).skip(skip)
-
-    res.status(200).json(events)
+    const { role, _id: userId } = req.user
+    console.log(userId)
+    if (role === 'USER') {
+      const events = await getEventService(role, userId, find, limitItem, skip)
+      res.status(200).json(events)
+    } else {
+      const events = await getEventService(role, null, find, limitItem, skip)
+      res.status(200).json(events)
+    }
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')
@@ -80,22 +88,23 @@ const getEventById = async (req, res) => {
 
 const registerEvent = async (req, res) => {
   try {
-    const regisInfor = req.body
-    if (regisInfor.student_code && regisInfor.eventId) {
-      const qr_code = await QRCode.toDataURL(JSON.stringify(regisInfor))
+    const { _id: userId } = req.user
+    const eventId = req.params.id
+    if (userId && eventId) {
+      const qr_code = await QRCode.toDataURL(
+        JSON.stringify({ userId, eventId })
+      )
 
-      // Dữ liệu cần thêm vào event registration
       const addDataEventRegistration = {
-        event_id: regisInfor.eventId,
+        event_id: eventId,
         qr_code: qr_code,
         registration_date: new Date(),
         check_in_status: false,
         check_out_status: false
       }
 
-      // Tìm và cập nhật User, thêm event vào mảng `events_registered`
       const user = await User.findByIdAndUpdate(
-        req.params.id,
+        userId,
         { $push: { events_registered: addDataEventRegistration } },
         { new: true, runValidators: true }
       )
@@ -103,15 +112,14 @@ const registerEvent = async (req, res) => {
         return res.status(404).json({ message: 'User not found' })
       }
 
-      // Tìm và cập nhật Event, thêm participant vào mảng `participants`
       const addDataParticipant = {
-        user_id: req.params.id,
+        user_id: userId,
         check_in_status: false,
         check_out_status: false
       }
 
       const event = await Event.findByIdAndUpdate(
-        regisInfor.eventId,
+        eventId,
         { $push: { participants: addDataParticipant } },
         { new: true, runValidators: true }
       )
@@ -167,6 +175,28 @@ const deleteEvent = async (req, res) => {
   }
 }
 
+const getQR = async (req, res) => {
+  try {
+    const { _id: userId } = req.user
+    const eventId = req.params.id
+    console.log(eventId)
+    if (userId && eventId) {
+      getUserQRCodeForEvent(userId, eventId)
+        .then((qrCode) => {
+          if (qrCode) res.status(200).json({ qr_code: qrCode })
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+          throw new Error(error)
+        })
+    } else {
+      return res.status(400).json({ message: 'Bad request' })
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 module.exports = {
   getEventById,
   registerEvent,
@@ -174,5 +204,6 @@ module.exports = {
   createEvent,
   getAllEvents,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  getQR
 }

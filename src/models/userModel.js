@@ -13,7 +13,9 @@ const userSchema = new mongoose.Schema({
   },
   student_code: {
     type: String,
-    required: true
+    required: function () {
+      return this.role === 'USER'
+    }
   },
   phone: {
     type: String,
@@ -21,11 +23,15 @@ const userSchema = new mongoose.Schema({
   },
   class_name: {
     type: String,
-    required: true
+    required: function () {
+      return this.role === 'USER'
+    }
   },
   full_name: {
     type: String,
-    required: true
+    required: function () {
+      return this.role === 'USER'
+    }
   },
   events_registered: [eventRegistrationSchema],
   role: {

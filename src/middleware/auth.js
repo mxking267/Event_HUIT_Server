@@ -20,11 +20,11 @@ const auth = (req, res, next) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
         req.user = {
+          _id: decoded._id,
           email: decoded.email,
-          name: decoded.name,
-          createdBy: 'huit'
+          full_name: decoded.full_name,
+          role: decoded.role
         }
-        console.log('>>> check token: ', decoded)
         next()
       } catch (error) {
         return res.status(401).json({
