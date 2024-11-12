@@ -12,7 +12,7 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
 
     const event = await Event.findById(eventId)
     if (!event) return { message: 'Event not found' }
-    console.log(student._id)
+
     const participant = event.participants.find(
       (p) => p.user_id.toString() === student._id.toString()
     )

@@ -27,6 +27,15 @@ const index = async (req, res) => {
     }
     // End Search
 
+    // Sort 
+    const sort = {};
+
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey] = req.query.sortValue;
+    }
+    // End sort 
+
+
     // Pagination
     let limitItem = 4
     let page = 1
@@ -43,7 +52,7 @@ const index = async (req, res) => {
     // End Pagination
 
     console.log(find)
-    const events = await Event.find(find).limit(limitItem).skip(skip)
+    const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
 
     res.status(200).json(events)
   } catch (error) {
@@ -55,7 +64,7 @@ const index = async (req, res) => {
 // Check-in sự kiện
 const checkInCheckOut = async (req, res) => {
   try {
-    const eventId   = req.params.eventId
+    const eventId = req.params.eventId
     const studentCode = req.body.studentCode
     const status = req.body.status // (checkin/checkout)
     const data = await checkInCheckOutService(eventId, studentCode, status)
@@ -139,6 +148,7 @@ const registerEvent = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
+
 
 module.exports = {
   index,
