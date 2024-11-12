@@ -15,6 +15,7 @@ const eventSchema = new mongoose.Schema(
       ref: 'Location',
       required: true
     },
+    thumbnail: String,
     status: {
       type: String,
       required: true
