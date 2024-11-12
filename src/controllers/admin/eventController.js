@@ -75,8 +75,10 @@ const listParticipant = async (req, res) => {
     const participants = []
 
     for (const participant of event.participants) {
-      const user = await User.findOne({_id: participant.user_id}).select("-password -events_registered")
-      if(user) {
+      const user = await User.findOne({ _id: participant.user_id }).select(
+        '-password -events_registered'
+      )
+      if (user) {
         participants.push(user)
       }
     }

@@ -55,7 +55,8 @@ const index = async (req, res) => {
 // Check-in sự kiện
 const checkInCheckOut = async (req, res) => {
   try {
-    const { eventId, studentCode } = req.params
+    const eventId   = req.params.eventId
+    const studentCode = req.body.studentCode
     const status = req.body.status // (checkin/checkout)
     const data = await checkInCheckOutService(eventId, studentCode, status)
     return res.status(200).json(data)
@@ -92,9 +93,9 @@ const registerEvent = async (req, res) => {
   try {
     const regisInfor = req.body
     if (regisInfor.student_code && regisInfor.eventId) {
-      regisInfor.usedFor = "checkin"
+      regisInfor.usedFor = 'checkin'
       const qr_code_cki = await QRCode.toDataURL(JSON.stringify(regisInfor))
-      regisInfor.usedFor = "checkout"
+      regisInfor.usedFor = 'checkout'
       const qr_code_cko = await QRCode.toDataURL(JSON.stringify(regisInfor))
 
       // Dữ liệu cần thêm vào event registration
@@ -118,7 +119,7 @@ const registerEvent = async (req, res) => {
       // Tìm và cập nhật Event, thêm participant vào mảng `participants`
       const addDataParticipant = {
         user_id: req.params.id,
-        check_in_out_status: "PENDING",
+        check_in_out_status: 'PENDING'
       }
 
       const event = await Event.findByIdAndUpdate(

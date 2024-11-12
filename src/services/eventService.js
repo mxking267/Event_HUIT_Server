@@ -12,27 +12,30 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
 
     const event = await Event.findById(eventId)
     if (!event) return { message: 'Event not found' }
-
+    console.log(student._id)
     const participant = event.participants.find(
       (p) => p.user_id.toString() === student._id.toString()
     )
+
     if (!participant) {
       return { message: 'User not registered for the event' }
     }
 
     if (status == 'checkin') {
-      if (participant.check_in_out_status == "CHECKED_IN" || participant.check_in_out_status == "CHECKED_OUT") {
+      if (
+        participant.check_in_out_status == 'CHECKED_IN' ||
+        participant.check_in_out_status == 'CHECKED_OUT'
+      ) {
         return { message: 'User has already checked in' }
       }
-      participant.check_in_out_status = "CHECKED_IN"
+      participant.check_in_out_status = 'CHECKED_IN'
       await event.save()
       return { message: 'Check-in successful' }
-    } 
-    else {
-      if (participant.check_in_out_status == "CHECKED_OUT") {
+    } else {
+      if (participant.check_in_out_status == 'CHECKED_OUT') {
         return { message: 'User has already checked out' }
       }
-      participant.check_in_out_status = "CHECKED_OUT"
+      participant.check_in_out_status = 'CHECKED_OUT'
       await event.save()
       return { message: 'Check-out successful' }
     }
