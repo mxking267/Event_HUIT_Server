@@ -35,6 +35,9 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
       if (participant.check_in_out_status == 'CHECKED_OUT') {
         return { message: 'User has already checked out' }
       }
+      if (participant.check_in_out_status != 'CHECKED_IN') {
+        return { message: 'User has not checked in' }
+      }
       participant.check_in_out_status = 'CHECKED_OUT'
       await event.save()
       return { message: 'Check-out successful' }

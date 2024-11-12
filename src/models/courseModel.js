@@ -9,6 +9,14 @@ const courseSchema = new mongoose.Schema(
     courseId: {
       type: Number,
       required: true
+    }, 
+    startYear: {
+      type: Number, 
+      required: true
+    },
+    endYear: {
+      type: Number, 
+      required: true
     }
   },
   { timestamps: true }

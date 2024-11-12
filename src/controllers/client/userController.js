@@ -12,6 +12,7 @@ const { Event } = require('../../models/eventModel')
 
 const generateHelper = require('../../helpers/generateHelper')
 const sendMailHelper = require('../../helpers/sendMailHelper')
+const { Course } = require('../../models/courseModel')
 
 const createUser = async (req, res) => {
   const {
@@ -183,60 +184,106 @@ const resetPassword = async (req, res) => {
 
 const registeredEvents = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const user = await User.findById(userId);
+    const userId = req.params.userId
+    const user = await User.findById(userId)
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: 'User not found' })
     }
 
     // Tìm kiếm tất cả các event_id trong user.events_registered
-    const eventIds = user.events_registered.map((item) => item.event_id);
+    const eventIds = user.events_registered.map((item) => item.event_id)
 
     // Search
-    const find = { _id: { $in: eventIds } }; // Tìm các sự kiện có _id trong eventIds
+    const find = { _id: { $in: eventIds } } // Tìm các sự kiện có _id trong eventIds
     if (req.query.status) {
-      find.status = req.query.status;
+      find.status = req.query.status
     }
 
     if (req.query.keyword) {
-      const regex = new RegExp(req.query.keyword, 'i');
-      find.name = regex;
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.name = regex
     }
 
     if (req.query.date) {
-      const date = new Date(req.query.date);
-      find.date_start = { $lte: date };
-      find.date_end = { $gte: date };
+      const date = new Date(req.query.date)
+      find.date_start = { $lte: date }
+      find.date_end = { $gte: date }
     }
 
     if (req.query.locationId) {
-      find.location_id = req.query.locationId;
+      find.location_id = req.query.locationId
     }
     // End Search
 
-    // Sort 
-    const sort = {};
+    // Sort
+    const sort = {}
 
     if (req.query.sortKey && req.query.sortValue) {
-      sort[req.query.sortKey] = req.query.sortValue;
+      sort[req.query.sortKey] = req.query.sortValue
     }
-    // End sort 
+    // End sort
 
     // Pagination
-    const limitItem = parseInt(req.query.limitItem) || 4;
-    const page = parseInt(req.query.page) || 1;
-    const skip = (page - 1) * limitItem;
+    const limitItem = parseInt(req.query.limitItem) || 4
+    const page = parseInt(req.query.page) || 1
+    const skip = (page - 1) * limitItem
     // End Pagination
-    console.log("toi day")
+    console.log('toi day')
     // Truy vấn các sự kiện với điều kiện tìm kiếm và phân trang
     const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
 
-    res.status(200).json(events);
+    res.status(200).json(events)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const trainingPointOnSemester = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const semester = parseInt(req.query.semester, 10);
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Lấy thông tin khóa học của sinh viên để xác định năm bắt đầu và kết thúc
+    const course = await Course.findById(user.courseId);
+    const startYear = course.startYear;
+
+    // Xác định khoảng thời gian cho semester
+    let semesterStart, semesterEnd;
+    const years = startYear + Math.floor((semester - 1) / 2); // Tính năm học của kỳ
+
+    if (semester % 2 === 1) { // Semester lẻ: tháng 9 - tháng 1
+      semesterStart = new Date(years, 8, 1); // 1/9 của năm học đó
+      semesterEnd = new Date(years + 1, 0, 31); // 31/1 của năm sau
+    } else { // Semester chẵn: tháng 2 - tháng 7
+      semesterStart = new Date(years + 1, 1, 1); // 1/2 của năm tiếp theo
+      semesterEnd = new Date(years + 1, 6, 31);  // 31/7 của năm tiếp theo
+    }
+    
+    // Tìm kiếm tất cả các event_id trong user.events_registered
+    const eventIds = user.events_registered.map((item) => item.event_id);
+
+    // Lấy các sự kiện mà sinh viên đã tham gia và có trạng thái CHECKED_OUT trong khoảng thời gian học kỳ
+    const events = await Event.find({
+      _id: { $in: eventIds },                   // Sự kiện nằm trong danh sách sự kiện đã đăng ký
+      "participants.user_id": userId,              // Sinh viên tham gia sự kiện
+      "participants.check_in_out_status": "CHECKED_OUT",        // Sinh viên đã tham gia đủ sự kiện
+      date_start: { $gte: semesterStart, $lte: semesterEnd } // Ngày bắt đầu nằm trong khoảng học kỳ
+    }).select("bonus_points");
+
+    // Tính tổng các điểm bonus_points
+    const totalTrainingPointsOnSemester = events.reduce((sum, event) => sum + (event.bonus_points || 0), 0);
+
+    res.status(200).json({ totalTrainingPointsOnSemester });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 module.exports = {
@@ -247,5 +294,6 @@ module.exports = {
   forgotPassword,
   otpPassword,
   resetPassword,
-  registeredEvents
+  registeredEvents, 
+  trainingPointOnSemester
 }

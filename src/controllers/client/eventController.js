@@ -27,14 +27,13 @@ const index = async (req, res) => {
     }
     // End Search
 
-    // Sort 
-    const sort = {};
+    // Sort
+    const sort = {}
 
     if (req.query.sortKey && req.query.sortValue) {
-      sort[req.query.sortKey] = req.query.sortValue;
+      sort[req.query.sortKey] = req.query.sortValue
     }
-    // End sort 
-
+    // End sort
 
     // Pagination
     let limitItem = 4
@@ -148,7 +147,6 @@ const registerEvent = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
-
 
 module.exports = {
   index,
