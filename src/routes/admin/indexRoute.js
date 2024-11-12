@@ -7,9 +7,8 @@ module.exports = (app) => {
   app.use('/api/v1/admin/events', eventRoute)
 
   app.use('/api/v1/admin/locations', locationRoute)
-  
+
   app.use('/api/v1/admin/facultys', facultyRoute)
 
   app.use('/api/v1/admin/courses', courseRoute)
-
 }

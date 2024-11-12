@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   events_registered: [eventRegistrationSchema], // Embedded event registration schema
+  facultyId: String,
+  courseId: String,
   role: {
     type: String,
     enum: ['USER', 'MANAGER', 'ADMIN'], // Role can be 'user', 'manager', or 'admin'

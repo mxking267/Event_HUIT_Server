@@ -11,7 +11,9 @@ const createUserService = async (
   password,
   student_code,
   className,
-  full_name
+  full_name, 
+  facultyId, 
+  courseId
 ) => {
   try {
     //check user exist
@@ -32,6 +34,8 @@ const createUserService = async (
       student_code: student_code,
       className: className,
       full_name: full_name,
+      facultyId: facultyId,
+      courseId: courseId,
       role: 'USER'
     })
     return result
