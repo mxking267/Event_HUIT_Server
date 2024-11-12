@@ -92,15 +92,17 @@ const registerEvent = async (req, res) => {
   try {
     const regisInfor = req.body
     if (regisInfor.student_code && regisInfor.eventId) {
-      const qr_code = await QRCode.toDataURL(JSON.stringify(regisInfor))
+      regisInfor.usedFor = "checkin"
+      const qr_code_cki = await QRCode.toDataURL(JSON.stringify(regisInfor))
+      regisInfor.usedFor = "checkout"
+      const qr_code_cko = await QRCode.toDataURL(JSON.stringify(regisInfor))
 
       // Dữ liệu cần thêm vào event registration
       const addDataEventRegistration = {
         event_id: regisInfor.eventId,
-        qr_code: qr_code,
-        registration_date: new Date(),
-        check_in_status: false,
-        check_out_status: false
+        qr_code_cki: qr_code_cki,
+        qr_code_cko: qr_code_cko,
+        registration_date: new Date()
       }
 
       // Tìm và cập nhật User, thêm event vào mảng `events_registered`
@@ -116,8 +118,7 @@ const registerEvent = async (req, res) => {
       // Tìm và cập nhật Event, thêm participant vào mảng `participants`
       const addDataParticipant = {
         user_id: req.params.id,
-        check_in_status: false,
-        check_out_status: false
+        check_in_out_status: "PENDING",
       }
 
       const event = await Event.findByIdAndUpdate(

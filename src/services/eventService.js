@@ -21,17 +21,18 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
     }
 
     if (status == 'checkin') {
-      if (participant.check_in_status) {
+      if (participant.check_in_out_status == "CHECKED_IN" || participant.check_in_out_status == "CHECKED_OUT") {
         return { message: 'User has already checked in' }
       }
-      participant.check_in_status = true
+      participant.check_in_out_status = "CHECKED_IN"
       await event.save()
       return { message: 'Check-in successful' }
-    } else {
-      if (participant.check_out_status) {
+    } 
+    else {
+      if (participant.check_in_out_status == "CHECKED_OUT") {
         return { message: 'User has already checked out' }
       }
-      participant.check_out_status = true
+      participant.check_in_out_status = "CHECKED_OUT"
       await event.save()
       return { message: 'Check-out successful' }
     }

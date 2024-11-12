@@ -1,4 +1,5 @@
 const { Event } = require('../../models/eventModel')
+const User = require('../../models/userModel')
 
 // Tạo sự kiện mới
 const createEvent = async (req, res) => {
@@ -63,10 +64,34 @@ const deleteEvent = async (req, res) => {
   }
 }
 
+const listParticipant = async (req, res) => {
+  try {
+    const eventId = req.params.eventId
+    const event = await Event.findById(eventId)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' })
+    }
+
+    const participants = []
+
+    for (const participant of event.participants) {
+      const user = await User.findOne({_id: participant.user_id}).select("-password -events_registered")
+      if(user) {
+        participants.push(user)
+      }
+    }
+
+    res.status(200).json(participants)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 module.exports = {
   createEvent,
   getAllEvents,
   getEventById,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  listParticipant
 }

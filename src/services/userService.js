@@ -11,8 +11,8 @@ const createUserService = async (
   password,
   student_code,
   className,
-  full_name, 
-  facultyId, 
+  full_name,
+  facultyId,
   courseId
 ) => {
   try {

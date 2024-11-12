@@ -35,13 +35,10 @@ const eventSchema = new mongoose.Schema(
           ref: 'User',
           required: true
         },
-        check_in_status: {
-          type: Boolean,
-          default: false
-        },
-        check_out_status: {
-          type: Boolean,
-          default: false
+        check_in_out_status: {
+          type: String,
+          enum: ['PENDING', 'CHECKED_IN', 'CHECKED_OUT'], // Role can be 'user', 'manager', or 'admin'
+          default: 'PENDING'
         }
       }
     ],
@@ -71,7 +68,11 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  qr_code: {
+  qr_code_cki: {
+    type: String,
+    required: true
+  },
+  qr_code_cko: {
     type: String,
     required: true
   }
