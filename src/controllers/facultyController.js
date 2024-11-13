@@ -12,8 +12,29 @@ const createFaculty = async (req, res) => {
 // Lấy tất cả sự kiện
 const getAllFaculties = async (req, res) => {
   try {
-    const faculties = await Faculty.find({})
-    res.status(200).json(faculties)
+    const find = {}
+
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.name = regex
+    }
+
+    let limitItem = 8
+    let page = 1
+
+    if (req.query.page) {
+      page = req.query.page
+    }
+    const skip = (page - 1) * limitItem
+
+    const totalFaculty = await Faculty.countDocuments(find)
+    const totalPages = Math.ceil(totalFaculty / limitItem)
+    const faculties = await Faculty.find(find).limit(limitItem).skip(skip)
+    res.status(200).json({
+      data: faculties,
+      currentPage: page,
+      totalPages
+    })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
