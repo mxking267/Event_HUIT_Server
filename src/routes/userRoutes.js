@@ -5,7 +5,8 @@ const {
   otpPassword,
   resetPassword,
   getUser,
-  getManager
+  getManager,
+  trainingPointOnSemester
 } = require('../controllers/userController')
 
 const router = express.Router()
@@ -15,5 +16,6 @@ router.post('/register', createUser)
 router.post('/password/forgot', forgotPassword)
 router.post('/password/otp', otpPassword)
 router.post('/password/reset', resetPassword)
+router.get('/trainingPointOnSemester/:userId', trainingPointOnSemester)
 
 module.exports = router

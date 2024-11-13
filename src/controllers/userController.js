@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt')
 
 const User = require('../models/userModel')
 const ForgotPassword = require('../models/forgotPasswordModel')
+const { Course } = require('../models/courseModel')
 
 const generateHelper = require('../utils/generateRandomNumber')
 const sendMailHelper = require('../utils/sendMail')
@@ -217,6 +218,50 @@ const resetPassword = async (req, res) => {
   })
 }
 
+const trainingPointOnSemester = async (req, res) => {
+  try {
+    const userId = req.params.userId
+    const semester = parseInt(req.query.semester, 10)
+    const user = await User.findById(userId).select('-password')
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+    // Lấy thông tin khóa học của sinh viên để xác định năm bắt đầu và kết thúc
+    const course = await Course.findById(user.courseId)
+    const startYear = course.startYear
+    // Xác định khoảng thời gian cho semester
+    let semesterStart, semesterEnd
+    const years = startYear + Math.floor((semester - 1) / 2) // Tính năm học của kỳ
+    if (semester % 2 === 1) {
+      // Semester lẻ: tháng 9 - tháng 1
+      semesterStart = new Date(years, 8, 1) // 1/9 của năm học đó
+      semesterEnd = new Date(years + 1, 0, 31) // 31/1 của năm sau
+    } else {
+      // Semester chẵn: tháng 2 - tháng 7
+      semesterStart = new Date(years + 1, 1, 1) // 1/2 của năm tiếp theo
+      semesterEnd = new Date(years + 1, 6, 31) // 31/7 của năm tiếp theo
+    }
+
+    // Tìm kiếm tất cả các event_id trong user.events_registered
+    const eventIds = user.events_registered.map((item) => item.event_id)
+    // Lấy các sự kiện mà sinh viên đã tham gia và có trạng thái CHECKED_OUT trong khoảng thời gian học kỳ
+    const events = await Event.find({
+      _id: { $in: eventIds }, // Sự kiện nằm trong danh sách sự kiện đã đăng ký
+      'participants.user_id': userId, // Sinh viên tham gia sự kiện
+      'participants.status': 'CHECKED_OUT', // Sinh viên đã tham gia đủ sự kiện
+      date_start: { $gte: semesterStart, $lte: semesterEnd } // Ngày bắt đầu nằm trong khoảng học kỳ
+    }).select('bonus_points')
+    // Tính tổng các điểm bonus_points
+    const totalTrainingPointsOnSemester = events.reduce(
+      (sum, event) => sum + (event.bonus_points || 0),
+      0
+    )
+    res.status(200).json({ totalTrainingPointsOnSemester })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 module.exports = {
   registerUser,
   createUser,
@@ -224,5 +269,6 @@ module.exports = {
   getManager,
   forgotPassword,
   otpPassword,
-  resetPassword
+  resetPassword,
+  trainingPointOnSemester
 }

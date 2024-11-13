@@ -34,8 +34,14 @@ const userSchema = new mongoose.Schema({
     }
   },
   events_registered: [eventRegistrationSchema],
-  facultyId: String,
-  courseId: String,
+  facultyId: {
+    type: String,
+    required: true
+  },
+  courseId: {
+    type: String,
+    required: true
+  },
   role: {
     type: String,
     enum: ['USER', 'MANAGER', 'ADMIN'],
