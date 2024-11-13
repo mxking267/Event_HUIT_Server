@@ -8,16 +8,19 @@ const index = async (req, res) => {
   try {
     const userId = req.body.userId
     const user = await User.findById(userId)
+    const facultyId = user.facultyId
     const course = await Course.findById(user.courseId)
-    // Kiểm tra còn trong thời gian học không? 
+    // Kiểm tra còn trong thời gian học không?
     const endDateCourse = new Date(course.endYear, 6, 31)
     // Lấy ngày hiện tại
-    const currentDate = new Date();
+    const currentDate = new Date()
 
     // Kiểm tra xem ngày hiện tại có bé hơn hoặc bằng ngày kết thúc khóa học không
     if (currentDate <= endDateCourse) {
       // Search
       const find = {}
+      find['belongFacultys.facultyId'] = facultyId
+
       if (req.query.status) {
         find.status = req.query.status
       }
@@ -61,12 +64,15 @@ const index = async (req, res) => {
       const skip = (page - 1) * limitItem
       // End Pagination
 
-      const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
+      const events = await Event
+        .find(find)
+        .limit(limitItem)
+        .skip(skip)
+        .sort(sort)
 
       res.status(200).json(events)
-    } 
-    else {
-      res.status(200).json({ message: 'User is no longer within study period' });
+    } else {
+      res.status(200).json({ message: 'User is no longer within study period' })
     }
   } catch (error) {
     console.log(error)

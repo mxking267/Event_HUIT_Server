@@ -43,6 +43,14 @@ const eventSchema = new mongoose.Schema(
         }
       }
     ],
+    belongFacultys: [
+      {
+        facultyId: {
+          type: String,
+          required: true
+        }
+      }
+    ],
     manager_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
