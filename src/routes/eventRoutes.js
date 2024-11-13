@@ -19,6 +19,6 @@ router.get('/qr/:id', getQR) // Lấy QR sự kiện theo ID
 router.patch('/edit/:id', updateEvent) // Cập nhật sự kiện theo ID
 router.delete('/delete/:id', deleteEvent) // Xóa sự kiện theo ID
 router.patch('/register/:id', registerEvent) // Đăng ký sự kiện
-router.patch('/check-in-out/:eventId/:studentCode', checkInCheckOut) // Check-in sự kiện
+router.post('/check-in-out', checkInCheckOut) // Check-in sự kiện
 
 module.exports = router

@@ -3,28 +3,28 @@ const UserModel = require('../models/userModel')
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId
 
-const checkInCheckOutService = async (eventId, studentCode, status) => {
+const checkInCheckOutService = async (eventId, userId, status) => {
   try {
-    if (!eventId && !studentCode) {
+    if (!eventId && !userId) {
       return { message: 'Bad request!' }
     }
 
-    const student = await UserModel.findOne({ student_code: studentCode })
-    if (!student) return { message: 'Student not found' }
+    const student = await UserModel.findOne({ _id: userId })
+    if (!student) throw new Error('Student not found')
 
     const event = await Event.findById(eventId)
-    if (!event) return { message: 'Event not found' }
+    if (!event) throw new Error('Event not found')
 
     const participant = event.participants.find(
       (p) => p.user_id.toString() === student._id.toString()
     )
     if (!participant) {
-      return { message: 'User not registered for the event' }
+      throw new Error('User not registered for the event')
     }
 
-    if (status == 'checkin') {
+    if (status == 'CHECK_IN') {
       if (participant.check_in_status) {
-        return { message: 'User has already checked in' }
+        throw new Error('User has already checked in')
       }
       participant.check_in_status = true
       await event.save()

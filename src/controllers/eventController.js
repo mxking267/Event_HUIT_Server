@@ -7,12 +7,11 @@ const {
   getUserQRCodeForEvent
 } = require('../services/eventService')
 
-// Check-in sự kiện
 const checkInCheckOut = async (req, res) => {
   try {
-    const { eventId, studentCode } = req.params
-    const status = req.body.status // (checkin/checkout)
-    const data = await checkInCheckOutService(eventId, studentCode, status)
+    const { eventId, userId } = req.body
+    const status = req.body.status
+    const data = await checkInCheckOutService(eventId, userId, status)
     return res.status(200).json(data)
   } catch (error) {
     console.log(error)
@@ -179,7 +178,6 @@ const getQR = async (req, res) => {
   try {
     const { _id: userId } = req.user
     const eventId = req.params.id
-    console.log(eventId)
     if (userId && eventId) {
       getUserQRCodeForEvent(userId, eventId)
         .then((qrCode) => {

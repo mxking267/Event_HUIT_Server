@@ -68,6 +68,16 @@ const getUser = async (req, res) => {
   }
 }
 
+const getManager = async (req, res) => {
+  try {
+    const users = await User.find({ role: 'MANAGER' }).select()
+    res.status(200).json(users)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json('Internal server error')
+  }
+}
+
 const forgotPassword = async (req, res) => {
   const email = req.body.email
   const existUser = await User.findOne({
@@ -201,6 +211,7 @@ module.exports = {
   registerUser,
   createUser,
   getUser,
+  getManager,
   forgotPassword,
   otpPassword,
   resetPassword

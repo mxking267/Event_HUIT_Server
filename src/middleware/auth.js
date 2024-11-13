@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 
 const auth = (req, res, next) => {
   const white_lists = [
-    '/',
     '/auth/register',
     '/auth/login',
     '/auth/password/forgot',
