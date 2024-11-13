@@ -9,9 +9,8 @@ const {
 
 const checkInCheckOut = async (req, res) => {
   try {
-    const { eventId, userId } = req.body
-    const status = req.body.status
-    const data = await checkInCheckOutService(eventId, userId, status)
+    const { eventId, userId, usedFor } = req.body
+    const data = await checkInCheckOutService(eventId, userId, usedFor)
     return res.status(200).json(data)
   } catch (error) {
     console.log(error)
@@ -72,6 +71,28 @@ const getAllEvents = async (req, res) => {
   }
 }
 
+const getListParticipant = async (req, res) => {
+  try {
+    const eventId = req.params.eventId
+    const event = await Event.findById(eventId)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' })
+    }
+    const participants = []
+    for (const participant of event.participants) {
+      const user = await User.findOne({ _id: participant.user_id }).select(
+        '-password -events_registered'
+      )
+      if (user) {
+        participants.push(user)
+      }
+    }
+    res.status(200).json(participants)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 // Lấy sự kiện theo ID
 const getEventById = async (req, res) => {
   try {
@@ -90,16 +111,19 @@ const registerEvent = async (req, res) => {
     const { _id: userId } = req.user
     const eventId = req.params.id
     if (userId && eventId) {
-      const qr_code = await QRCode.toDataURL(
-        JSON.stringify({ userId, eventId })
+      const qr_code_cki = await QRCode.toDataURL(
+        JSON.stringify({ userId, eventId, usedFor: 'CHECK_IN' })
+      )
+      const qr_code_cko = await QRCode.toDataURL(
+        JSON.stringify({ userId, eventId, usedFor: 'CHECK_OUT' })
       )
 
       const addDataEventRegistration = {
         event_id: eventId,
-        qr_code: qr_code,
         registration_date: new Date(),
-        check_in_status: false,
-        check_out_status: false
+        qr_code_cki,
+        qr_code_cko,
+        status: 'PENDING'
       }
 
       const user = await User.findByIdAndUpdate(
@@ -203,5 +227,6 @@ module.exports = {
   getAllEvents,
   updateEvent,
   deleteEvent,
-  getQR
+  getQR,
+  getListParticipant
 }

@@ -3,7 +3,7 @@ const UserModel = require('../models/userModel')
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId
 
-const checkInCheckOutService = async (eventId, userId, status) => {
+const checkInCheckOutService = async (eventId, userId, usedFor) => {
   try {
     if (!eventId && !userId) {
       return { message: 'Bad request!' }
@@ -22,23 +22,20 @@ const checkInCheckOutService = async (eventId, userId, status) => {
       throw new Error('User not registered for the event')
     }
 
-    if (status == 'CHECK_IN') {
-      if (participant.check_in_status) {
+    if (usedFor == 'CHECK_IN') {
+      if (participant.status === 'CHECKED_IN') {
         throw new Error('User has already checked in')
       }
-      participant.check_in_status = true
+      participant.status = 'CHECKED_IN'
       await event.save()
       return { message: 'Check-in successful' }
-    } else {
-      if (participant.check_out_status) {
+    } else if (usedFor === 'CHECK_OUT') {
+      if (participant.status === 'CHECKED_OUT') {
         return { message: 'User has already checked out' }
       }
-      participant.check_out_status = true
-      await event.save()
-      return { message: 'Check-out successful' }
+    } else {
+      return { message: 'Event has been cancelled' }
     }
-
-    // event.bonus_points = 4; // apply to the old event
   } catch (error) {
     console.log(error)
     return null
@@ -54,12 +51,6 @@ const getEventService = async (role, userId, find, limitItem, skip) => {
     const modifiedEvents = events.map((event) => {
       const userObjectId = new ObjectId(userId)
       const isRegistered = event.participants.some((part) => {
-        console.log('-----------------------')
-        console.log(userObjectId)
-        console.log(part.user_id)
-        console.log(part.user_id.equals(userObjectId))
-        console.log('-----------------------')
-
         return part.user_id.equals(userObjectId)
       })
 
