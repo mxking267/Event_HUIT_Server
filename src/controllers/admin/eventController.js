@@ -90,16 +90,19 @@ const listParticipant = async (req, res) => {
 }
 
 const changeMultiEventsStatus = async (req, res) => {
-  const status = req.body.status 
+  const status = req.body.status
   const ids = req.body.ids
 
-  await Event.updateMany({
-    _id: { $in: ids }
-  }, {
-    status: status
-  })
+  await Event.updateMany(
+    {
+      _id: { $in: ids }
+    },
+    {
+      status: status
+    }
+  )
 
-  res.status(200).json({message: "Update event successfully!"})
+  res.status(200).json({ message: 'Update event successfully!' })
 }
 
 module.exports = {
@@ -108,6 +111,6 @@ module.exports = {
   getEventById,
   updateEvent,
   deleteEvent,
-  listParticipant, 
+  listParticipant,
   changeMultiEventsStatus
 }
