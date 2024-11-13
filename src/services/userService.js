@@ -11,7 +11,9 @@ const createUserService = async (
   student_code,
   class_name,
   full_name,
-  role
+  role,
+  facultyId,
+  courseId
 ) => {
   try {
     const user = await User.findOne({ email })
@@ -29,7 +31,9 @@ const createUserService = async (
         student_code,
         class_name,
         full_name,
-        role: 'USER'
+        role: 'USER',
+        facultyId,
+        courseId
       })
     } else {
       result = await User.create({

@@ -9,14 +9,24 @@ const generateHelper = require('../utils/generateRandomNumber')
 const sendMailHelper = require('../utils/sendMail')
 
 const registerUser = async (req, res) => {
-  const { email, password, student_code, class_name, full_name } = req.body
+  const {
+    email,
+    password,
+    student_code,
+    class_name,
+    full_name,
+    facultyId,
+    courseId
+  } = req.body
   console.log(req.body)
   const data = await createUserService(
     email,
     password,
     student_code,
     class_name,
-    full_name
+    full_name,
+    facultyId,
+    courseId
   )
   return res.status(200).json(data)
 }
