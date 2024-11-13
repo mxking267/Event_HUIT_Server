@@ -41,6 +41,14 @@ const getAllEvents = async (req, res) => {
     }
     // End Search
 
+    // Sort
+    const sort = {}
+
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey] = req.query.sortValue
+    }
+    // End sort
+
     // Pagination
     let limitItem = 4
     let page = 1
@@ -59,10 +67,22 @@ const getAllEvents = async (req, res) => {
     const { role, _id: userId } = req.user
     console.log(userId)
     if (role === 'USER') {
-      const events = await getEventService(role, userId, find, limitItem, skip)
+      const events = await getEventService(
+        role,
+        userId,
+        find,
+        limitItem,
+        skip
+      ).sort(sort)
       res.status(200).json(events)
     } else {
-      const events = await getEventService(role, null, find, limitItem, skip)
+      const events = await getEventService(
+        role,
+        null,
+        find,
+        limitItem,
+        skip
+      ).sort(sort)
       res.status(200).json(events)
     }
   } catch (error) {
@@ -219,6 +239,52 @@ const getQR = async (req, res) => {
   }
 }
 
+const registeredEvents = async (req, res) => {
+  try {
+    const userId = req.params.userId
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+    // Tìm kiếm tất cả các event_id trong user.events_registered
+    const eventIds = user.events_registered.map((item) => item.event_id)
+    // Search
+    const find = { _id: { $in: eventIds } } // Tìm các sự kiện có _id trong eventIds
+    if (req.query.status) {
+      find.status = req.query.status
+    }
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.name = regex
+    }
+    if (req.query.date) {
+      const date = new Date(req.query.date)
+      find.date_start = { $lte: date }
+      find.date_end = { $gte: date }
+    }
+    if (req.query.locationId) {
+      find.location_id = req.query.locationId
+    }
+    // End Search
+    // Sort
+    const sort = {}
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey] = req.query.sortValue
+    }
+    // End sort
+    // Pagination
+    const limitItem = parseInt(req.query.limitItem) || 4
+    const page = parseInt(req.query.page) || 1
+    const skip = (page - 1) * limitItem
+    // End Pagination
+    // Truy vấn các sự kiện với điều kiện tìm kiếm và phân trang
+    const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
+    res.status(200).json(events)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 module.exports = {
   getEventById,
   registerEvent,
@@ -228,5 +294,6 @@ module.exports = {
   updateEvent,
   deleteEvent,
   getQR,
-  getListParticipant
+  getListParticipant,
+  registeredEvents
 }

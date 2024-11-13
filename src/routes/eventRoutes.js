@@ -8,13 +8,15 @@ const {
   registerEvent,
   checkInCheckOut,
   getQR,
-  getListParticipant
+  getListParticipant,
+  registeredEvents
 } = require('../controllers/eventController')
 
 const router = express.Router()
 
 router.get('/', getAllEvents) // Lấy tất cả sự kiện
-router.get('/listParticipant/:eventId', getListParticipant) // Lấy danh sách tham gia
+router.get('/listParticipant/:eventId', registeredEvents) // Lấy danh sách tham gia
+router.get('/event-registered/:userId', getListParticipant) // Lấy danh sách tham gia
 router.post('/create', createEvent) // Tạo mới sự kiện
 router.get('/detail/:id', getEventById) // Lấy sự kiện theo ID
 router.get('/qr/:id', getQR) // Lấy QR sự kiện theo ID
