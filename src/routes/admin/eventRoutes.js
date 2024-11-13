@@ -7,8 +7,9 @@ const {
   deleteEvent,
   listParticipant,
   changeMultiEventsStatus,
-  deleteMultiParticipants, 
-  statisticalEvent
+  deleteMultiParticipants,
+  statisticalEvent, 
+  exportExcel
 } = require('../../controllers/admin/eventController')
 
 const router = express.Router()
@@ -22,5 +23,6 @@ router.get('/listParticipant/:eventId', listParticipant)
 router.patch('/update-status-multi', changeMultiEventsStatus)
 router.patch('/delete-multi-participants/:eventId', deleteMultiParticipants)
 router.get('/statisticalEvent/:eventId', statisticalEvent)
+router.get('/exportExcel/:eventId/:facultyId', exportExcel)
 
 module.exports = router

@@ -2,8 +2,11 @@ const eventRoute = require('./eventRoutes')
 const locationRoute = require('./locationRoutes')
 const facultyRoute = require('./facultyRoutes')
 const courseRoute = require('./courseRoutes')
+const authAdmin = require('../../middleware/authAdmin')
 
 module.exports = (app) => {
+  app.use(authAdmin)
+
   app.use('/api/v1/admin/events', eventRoute)
 
   app.use('/api/v1/admin/locations', locationRoute)

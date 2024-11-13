@@ -208,18 +208,50 @@ const statisticalEvent = async (req, res) => {
 
     for (const participant of event.participants) {
       if (participant.check_in_out_status === 'CHECKED_OUT') {
-        countParticipantsCompleted += 1;
+        countParticipantsCompleted += 1
       } else {
-        countParticipantsNotCompleted += 1;
+        countParticipantsNotCompleted += 1
       }
     }
 
-    res.status(200).json(
-      {
-        countParticipantsNotCompleted: countParticipantsNotCompleted, 
-        countParticipantsCompleted: countParticipantsCompleted
-      }
-    )
+    res.status(200).json({
+      countParticipantsNotCompleted: countParticipantsNotCompleted,
+      countParticipantsCompleted: countParticipantsCompleted
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const exportExcel = async (req, res) => {
+  try {
+    const facultyId = req.params.facultyId
+    const eventId = req.params.eventId
+    const event = await Event.findById(eventId)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Lấy ra các userIds đã check out tại sự kiện
+    const userIds = event.participants
+      .filter((p) => p.user_id && p.check_in_out_status === 'CHECKED_OUT')
+      .map((p) => p.user_id);
+
+    console.log(userIds)
+
+    const users = await User.find({
+      _id: { $in: userIds }, 
+      facultyId: facultyId
+    }).select('-password -events_registered -status -role')
+
+    res.status(200).json({
+      eventId: eventId,
+      name: event.name, 
+      bonus_points: event.bonus_points, 
+      facultys: event.belongFacultys,
+      NumOfRegistration: event.participants.length,
+      users: users
+    })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -234,5 +266,6 @@ module.exports = {
   listParticipant,
   changeMultiEventsStatus,
   deleteMultiParticipants,
-  statisticalEvent
+  statisticalEvent,
+  exportExcel
 }
