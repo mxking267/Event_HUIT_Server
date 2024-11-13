@@ -1,5 +1,7 @@
 const { Event } = require('../../models/eventModel')
 const User = require('../../models/userModel')
+const { checkInCheckOutService } = require('../../services/eventService')
+
 
 // Tạo sự kiện mới
 const createEvent = async (req, res) => {
@@ -229,31 +231,45 @@ const exportExcel = async (req, res) => {
     const eventId = req.params.eventId
     const event = await Event.findById(eventId)
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({ message: 'Event not found' })
     }
 
     // Lấy ra các userIds đã check out tại sự kiện
     const userIds = event.participants
       .filter((p) => p.user_id && p.check_in_out_status === 'CHECKED_OUT')
-      .map((p) => p.user_id);
+      .map((p) => p.user_id)
 
     console.log(userIds)
 
     const users = await User.find({
-      _id: { $in: userIds }, 
+      _id: { $in: userIds },
       facultyId: facultyId
     }).select('-password -events_registered -status -role')
 
     res.status(200).json({
       eventId: eventId,
-      name: event.name, 
-      bonus_points: event.bonus_points, 
+      name: event.name,
+      bonus_points: event.bonus_points,
       facultys: event.belongFacultys,
       NumOfRegistration: event.participants.length,
       users: users
     })
   } catch (error) {
     res.status(500).json({ error: error.message })
+  }
+}
+
+// Check-in-out sự kiện
+const checkInCheckOut = async (req, res) => {
+  try {
+    const eventId = req.params.eventId
+    const studentCode = req.body.studentCode
+    const status = req.body.status // (checkin/checkout)
+    const data = await checkInCheckOutService(eventId, studentCode, status)
+    return res.status(200).json(data)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json('Internal server error')
   }
 }
 
@@ -266,6 +282,7 @@ module.exports = {
   listParticipant,
   changeMultiEventsStatus,
   deleteMultiParticipants,
+  checkInCheckOut,
   statisticalEvent,
   exportExcel
 }

@@ -8,7 +8,7 @@ const {
   listParticipant,
   changeMultiEventsStatus,
   deleteMultiParticipants,
-  statisticalEvent, 
+  statisticalEvent,
   exportExcel
 } = require('../../controllers/admin/eventController')
 

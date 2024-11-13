@@ -1,7 +1,7 @@
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 
-const authAdmin = async (req, res, next) => {
+const authManager = async (req, res, next) => {
   try {
     const token = req?.headers?.authorization?.split(' ')?.[1]
     try {
@@ -11,14 +11,14 @@ const authAdmin = async (req, res, next) => {
         email: decoded.email
       }
       console.log('>>> check token: ', decoded.email)
-      const admin = await User.findOne({
+      const manager = await User.findOne({
         email: decoded.email,
-        role: 'ADMIN'
+        role:  { $in: ['MANAGER', 'ADMIN'] }
       })
 
-      if (!admin) {
+      if (!manager) {
         return res.status(401).json({
-          message: 'Do not have admin rights!'
+          message: 'Do not have manager or admin rights!'
         })
       }
       next()
@@ -33,4 +33,4 @@ const authAdmin = async (req, res, next) => {
   }
 }
 
-module.exports = authAdmin
+module.exports = authManager

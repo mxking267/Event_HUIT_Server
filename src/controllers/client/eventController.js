@@ -2,7 +2,6 @@ const { Event } = require('../../models/eventModel')
 const User = require('../../models/userModel')
 const { Course } = require('../../models/courseModel')
 const QRCode = require('qrcode')
-const { checkInCheckOutService } = require('../../services/eventService')
 
 const index = async (req, res) => {
   try {
@@ -73,20 +72,6 @@ const index = async (req, res) => {
     } else {
       res.status(200).json({ message: 'User is no longer within study period' })
     }
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json('Internal server error')
-  }
-}
-
-// Check-in sự kiện
-const checkInCheckOut = async (req, res) => {
-  try {
-    const eventId = req.params.eventId
-    const studentCode = req.body.studentCode
-    const status = req.body.status // (checkin/checkout)
-    const data = await checkInCheckOutService(eventId, studentCode, status)
-    return res.status(200).json(data)
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')
@@ -171,6 +156,5 @@ module.exports = {
   index,
   getAllEvents,
   getEventById,
-  registerEvent,
-  checkInCheckOut
+  registerEvent
 }
