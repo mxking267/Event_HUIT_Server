@@ -65,6 +65,7 @@ const eventRegistrationSchema = new mongoose.Schema({
     ref: 'Event',
     required: true
   },
+  thumbnail: String,
   registration_date: {
     type: Date,
     default: Date.now
