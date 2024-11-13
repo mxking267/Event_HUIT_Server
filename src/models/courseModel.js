@@ -9,13 +9,13 @@ const courseSchema = new mongoose.Schema(
     courseId: {
       type: Number,
       required: true
-    }, 
+    },
     startYear: {
-      type: Number, 
+      type: Number,
       required: true
     },
     endYear: {
-      type: Number, 
+      type: Number,
       required: true
     }
   },

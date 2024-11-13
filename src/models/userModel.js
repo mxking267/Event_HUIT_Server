@@ -30,11 +30,11 @@ const userSchema = new mongoose.Schema({
   },
   events_registered: [eventRegistrationSchema], // Embedded event registration schema
   facultyId: {
-    type: String, 
+    type: String,
     required: true
   },
   courseId: {
-    type: String, 
+    type: String,
     required: true
   },
   role: {
