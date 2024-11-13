@@ -50,7 +50,6 @@ const index = async (req, res) => {
     const skip = (page - 1) * limitItem
     // End Pagination
 
-    console.log(find)
     const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
 
     res.status(200).json(events)
@@ -147,6 +146,7 @@ const registerEvent = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
+
 
 module.exports = {
   index,

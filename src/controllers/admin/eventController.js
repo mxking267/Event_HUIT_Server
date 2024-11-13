@@ -72,18 +72,71 @@ const listParticipant = async (req, res) => {
       return res.status(404).json({ message: 'Event not found' })
     }
 
-    const participants = []
-
-    for (const participant of event.participants) {
-      const user = await User.findOne({ _id: participant.user_id }).select(
-        '-password -events_registered'
-      )
-      if (user) {
-        participants.push(user)
-      }
+    // Search
+    const find = {}
+    if (req.query.full_name) {
+      const regex = new RegExp(req.query.full_name, 'i')
+      find.full_name = regex
     }
 
-    res.status(200).json(participants)
+    if (req.query.student_code) {
+      const regex = new RegExp(req.query.student_code, 'i')
+      find.student_code = regex
+    }
+
+    if (req.query.className) {
+      const regex = new RegExp(req.query.className, 'i')
+      find.className = regex
+    }
+
+    if (req.query.courseId) {
+      find.courseId = req.query.courseId
+    }
+
+    if (req.query.facultyId) {
+      find.facultyId = req.query.facultyId
+    }
+
+    // End Search
+
+    // Sort
+    const sort = {}
+
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey] = req.query.sortValue
+    }
+    // End sort
+
+    // Pagination
+    let limitItem = 20
+    let page = 1
+
+    if (req.query.page) {
+      page = req.query.page
+    }
+
+    if (req.query.limitItem) {
+      limitItem = req.query.limitItem
+    }
+
+    const skip = (page - 1) * limitItem
+    // End Pagination
+
+    const userIds = [] 
+    for (const p of event.participants) {
+      userIds.push(p.user_id)
+    }
+
+    find._id = { $in: userIds }
+
+    const users = await User
+      .find(find)
+      .limit(limitItem)
+      .skip(skip)
+      .sort(sort)
+      .select('-password -events_registered -role')
+
+    res.status(200).json(users)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -104,6 +157,8 @@ const changeMultiEventsStatus = async (req, res) => {
 
   res.status(200).json({ message: 'Update event successfully!' })
 }
+
+
 
 module.exports = {
   createEvent,

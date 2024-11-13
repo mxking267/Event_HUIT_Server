@@ -1,4 +1,4 @@
-const  Feedback  = require('../../models/feedbackModel')
+const Feedback = require('../../models/feedbackModel')
 
 // Tạo sự kiện mới
 const createFeedback = async (req, res) => {

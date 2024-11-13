@@ -20,4 +20,4 @@ const feedbackSchema = new mongoose.Schema(
 
 const Feedback = mongoose.model('Feedback', feedbackSchema, 'feedbacks')
 
-module.exports =  Feedback 
+module.exports = Feedback
