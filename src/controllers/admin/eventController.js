@@ -179,17 +179,47 @@ const deleteMultiParticipants = async (req, res) => {
       }
     )
 
-    await User.updateMany({
-      _id: { $in:  userIds}
-    }, {
-      $pull: {
-        events_registered: {
-          event_id: eventId
+    await User.updateMany(
+      {
+        _id: { $in: userIds }
+      },
+      {
+        $pull: {
+          events_registered: {
+            event_id: eventId
+          }
         }
       }
-    })
+    )
 
     res.status(200).json({ message: 'Delete participants successfully!' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const statisticalEvent = async (req, res) => {
+  try {
+    const eventId = req.params.eventId
+    const event = await Event.findById(eventId)
+
+    let countParticipantsNotCompleted = 0
+    let countParticipantsCompleted = 0
+
+    for (const participant of event.participants) {
+      if (participant.check_in_out_status === 'CHECKED_OUT') {
+        countParticipantsCompleted += 1;
+      } else {
+        countParticipantsNotCompleted += 1;
+      }
+    }
+
+    res.status(200).json(
+      {
+        countParticipantsNotCompleted: countParticipantsNotCompleted, 
+        countParticipantsCompleted: countParticipantsCompleted
+      }
+    )
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -203,5 +233,6 @@ module.exports = {
   deleteEvent,
   listParticipant,
   changeMultiEventsStatus,
-  deleteMultiParticipants
+  deleteMultiParticipants,
+  statisticalEvent
 }
