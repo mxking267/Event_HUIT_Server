@@ -64,8 +64,7 @@ const index = async (req, res) => {
       const skip = (page - 1) * limitItem
       // End Pagination
 
-      const events = await Event
-        .find(find)
+      const events = await Event.find(find)
         .limit(limitItem)
         .skip(skip)
         .sort(sort)
@@ -136,7 +135,7 @@ const registerEvent = async (req, res) => {
 
       // Tìm và cập nhật User, thêm event vào mảng `events_registered`
       const user = await User.findByIdAndUpdate(
-        req.params.id,
+        req.params.userId,
         { $push: { events_registered: addDataEventRegistration } },
         { new: true, runValidators: true }
       )
@@ -146,7 +145,7 @@ const registerEvent = async (req, res) => {
 
       // Tìm và cập nhật Event, thêm participant vào mảng `participants`
       const addDataParticipant = {
-        user_id: req.params.id,
+        user_id: req.params.userId,
         check_in_out_status: 'PENDING'
       }
 

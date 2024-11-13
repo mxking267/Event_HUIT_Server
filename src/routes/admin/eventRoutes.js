@@ -6,7 +6,8 @@ const {
   updateEvent,
   deleteEvent,
   listParticipant,
-  changeMultiEventsStatus
+  changeMultiEventsStatus,
+  deleteMultiParticipants
 } = require('../../controllers/admin/eventController')
 
 const router = express.Router()
@@ -18,5 +19,6 @@ router.patch('/edit/:id', updateEvent) // Cập nhật sự kiện theo ID
 router.delete('/delete/:id', deleteEvent) // Xóa sự kiện theo ID
 router.get('/listParticipant/:eventId', listParticipant)
 router.patch('/update-status-multi', changeMultiEventsStatus)
+router.patch('/delete-multi-participants/:eventId', deleteMultiParticipants)
 
 module.exports = router

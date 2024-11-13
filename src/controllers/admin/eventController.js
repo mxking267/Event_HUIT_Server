@@ -142,19 +142,57 @@ const listParticipant = async (req, res) => {
 }
 
 const changeMultiEventsStatus = async (req, res) => {
-  const status = req.body.status
-  const ids = req.body.ids
+  try {
+    const status = req.body.status
+    const ids = req.body.ids
 
-  await Event.updateMany(
-    {
-      _id: { $in: ids }
-    },
-    {
-      status: status
-    }
-  )
+    await Event.updateMany(
+      {
+        _id: { $in: ids }
+      },
+      {
+        status: status
+      }
+    )
 
-  res.status(200).json({ message: 'Update event successfully!' })
+    res.status(200).json({ message: 'Update event successfully!' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const deleteMultiParticipants = async (req, res) => {
+  try {
+    const userIds = req.body.userIds
+    const eventId = req.params.eventId
+
+    await Event.updateOne(
+      {
+        _id: eventId
+      },
+      {
+        $pull: {
+          participants: {
+            user_id: { $in: userIds }
+          }
+        }
+      }
+    )
+
+    await User.updateMany({
+      _id: { $in:  userIds}
+    }, {
+      $pull: {
+        events_registered: {
+          event_id: eventId
+        }
+      }
+    })
+
+    res.status(200).json({ message: 'Delete participants successfully!' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
 module.exports = {
@@ -164,5 +202,6 @@ module.exports = {
   updateEvent,
   deleteEvent,
   listParticipant,
-  changeMultiEventsStatus
+  changeMultiEventsStatus,
+  deleteMultiParticipants
 }
