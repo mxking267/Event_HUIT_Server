@@ -1,58 +1,73 @@
 const { Event } = require('../../models/eventModel')
 const User = require('../../models/userModel')
+const { Course } = require('../../models/courseModel')
 const QRCode = require('qrcode')
 const { checkInCheckOutService } = require('../../services/eventService')
 
 const index = async (req, res) => {
   try {
-    // Search
-    const find = {}
-    if (req.query.status) {
-      find.status = req.query.status
+    const userId = req.body.userId
+    const user = await User.findById(userId)
+    const course = await Course.findById(user.courseId)
+    // Kiểm tra còn trong thời gian học không? 
+    const endDateCourse = new Date(course.endYear, 6, 31)
+    // Lấy ngày hiện tại
+    const currentDate = new Date();
+
+    // Kiểm tra xem ngày hiện tại có bé hơn hoặc bằng ngày kết thúc khóa học không
+    if (currentDate <= endDateCourse) {
+      // Search
+      const find = {}
+      if (req.query.status) {
+        find.status = req.query.status
+      }
+
+      if (req.query.keyword) {
+        const regex = new RegExp(req.query.keyword, 'i')
+        find.name = regex
+      }
+
+      if (req.query.date) {
+        const date = new Date(req.query.date)
+        find.date_start = { $lte: date }
+        find.date_end = { $gte: date }
+      }
+
+      if (req.query.locationId) {
+        find.location_id = req.query.locationId
+      }
+      // End Search
+
+      // Sort
+      const sort = {}
+
+      if (req.query.sortKey && req.query.sortValue) {
+        sort[req.query.sortKey] = req.query.sortValue
+      }
+      // End sort
+
+      // Pagination
+      let limitItem = 4
+      let page = 1
+
+      if (req.query.page) {
+        page = req.query.page
+      }
+
+      if (req.query.limitItem) {
+        limitItem = req.query.limitItem
+      }
+
+      const skip = (page - 1) * limitItem
+      // End Pagination
+
+      const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
+
+      res.status(200).json(events)
+    } 
+    else {
+      res.status(200).json({ message: 'User is no longer within study period' });
     }
-
-    if (req.query.keyword) {
-      const regex = new RegExp(req.query.keyword, 'i')
-      find.name = regex
-    }
-
-    if (req.query.date) {
-      const date = new Date(req.query.date)
-      find.date_start = { $lte: date }
-      find.date_end = { $gte: date }
-    }
-
-    if (req.query.locationId) {
-      find.location_id = req.query.locationId
-    }
-    // End Search
-
-    // Sort
-    const sort = {}
-
-    if (req.query.sortKey && req.query.sortValue) {
-      sort[req.query.sortKey] = req.query.sortValue
-    }
-    // End sort
-
-    // Pagination
-    let limitItem = 4
-    let page = 1
-
-    if (req.query.page) {
-      page = req.query.page
-    }
-
-    if (req.query.limitItem) {
-      limitItem = req.query.limitItem
-    }
-
-    const skip = (page - 1) * limitItem
-    // End Pagination
-
-    const events = await Event.find(find).limit(limitItem).skip(skip).sort(sort)
-
-    res.status(200).json(events)
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')
@@ -146,7 +161,6 @@ const registerEvent = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' })
   }
 }
-
 
 module.exports = {
   index,

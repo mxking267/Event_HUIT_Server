@@ -122,15 +122,14 @@ const listParticipant = async (req, res) => {
     const skip = (page - 1) * limitItem
     // End Pagination
 
-    const userIds = [] 
+    const userIds = []
     for (const p of event.participants) {
       userIds.push(p.user_id)
     }
 
     find._id = { $in: userIds }
 
-    const users = await User
-      .find(find)
+    const users = await User.find(find)
       .limit(limitItem)
       .skip(skip)
       .sort(sort)
@@ -157,8 +156,6 @@ const changeMultiEventsStatus = async (req, res) => {
 
   res.status(200).json({ message: 'Update event successfully!' })
 }
-
-
 
 module.exports = {
   createEvent,

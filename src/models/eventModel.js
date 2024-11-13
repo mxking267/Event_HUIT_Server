@@ -18,7 +18,8 @@ const eventSchema = new mongoose.Schema(
     thumbnail: String,
     status: {
       type: String,
-      required: true
+      enum: ['INITIAL', 'HAPPENING', 'FINISHED', 'STOPPED'],
+      default: 'INITIAL'
     },
     date_start: {
       type: Date,

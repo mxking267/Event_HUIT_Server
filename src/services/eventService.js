@@ -13,6 +13,10 @@ const checkInCheckOutService = async (eventId, studentCode, status) => {
     const event = await Event.findById(eventId)
     if (!event) return { message: 'Event not found' }
 
+    if (event.status != 'HAPPENING') {
+      return { message: 'Event stopped or finished or not started yet' }
+    }
+
     const participant = event.participants.find(
       (p) => p.user_id.toString() === student._id.toString()
     )
