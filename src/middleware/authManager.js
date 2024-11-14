@@ -13,7 +13,7 @@ const authManager = async (req, res, next) => {
       console.log('>>> check token: ', decoded.email)
       const manager = await User.findOne({
         email: decoded.email,
-        role:  { $in: ['MANAGER', 'ADMIN'] }
+        role: { $in: ['MANAGER', 'ADMIN'] }
       })
 
       if (!manager) {

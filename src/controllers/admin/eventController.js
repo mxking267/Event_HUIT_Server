@@ -2,7 +2,6 @@ const { Event } = require('../../models/eventModel')
 const User = require('../../models/userModel')
 const { checkInCheckOutService } = require('../../services/eventService')
 
-
 // Tạo sự kiện mới
 const createEvent = async (req, res) => {
   try {

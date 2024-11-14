@@ -10,6 +10,6 @@ const facultySchema = new mongoose.Schema(
   { timestamps: true }
 )
 
-const Faculty = mongoose.model('Faculty', facultySchema, 'facultys')
+const Faculty = mongoose.model('Faculty', facultySchema, 'faculties')
 
 module.exports = { Faculty }
