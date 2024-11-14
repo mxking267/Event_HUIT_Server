@@ -41,16 +41,8 @@ const getAllEvents = async (req, res) => {
     }
     // End Search
 
-    // Sort
-    const sort = {}
-
-    if (req.query.sortKey && req.query.sortValue) {
-      sort[req.query.sortKey] = req.query.sortValue
-    }
-    // End sort
-
     // Pagination
-    let limitItem = 4
+    let limitItem = 8
     let page = 1
 
     if (req.query.page) {
@@ -65,25 +57,22 @@ const getAllEvents = async (req, res) => {
     // End Pagination
 
     const { role, _id: userId } = req.user
-    console.log(userId)
+    const totalItem = await Event.countDocuments(find)
+
     if (role === 'USER') {
-      const events = await getEventService(
-        role,
-        userId,
-        find,
-        limitItem,
-        skip
-      ).sort(sort)
-      res.status(200).json(events)
+      const events = await getEventService(role, userId, find, limitItem, skip)
+      res.status(200).json({
+        data: events,
+        currentPage: page,
+        totalPages: Math.ceil(totalItem / limitItem)
+      })
     } else {
-      const events = await getEventService(
-        role,
-        null,
-        find,
-        limitItem,
-        skip
-      ).sort(sort)
-      res.status(200).json(events)
+      const events = await getEventService(role, null, find, limitItem, skip)
+      res.status(200).json({
+        data: events,
+        currentPage: page,
+        totalPages: Math.ceil(totalItem / limitItem)
+      })
     }
   } catch (error) {
     console.log(error)
@@ -93,6 +82,12 @@ const getAllEvents = async (req, res) => {
 
 const getListParticipant = async (req, res) => {
   try {
+    const find = {}
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.$or = [{ student_code: regex }, { full_name: regex }]
+    }
+
     const eventId = req.params.eventId
     const event = await Event.findById(eventId)
     if (!event) {
@@ -100,13 +95,25 @@ const getListParticipant = async (req, res) => {
     }
     const participants = []
     for (const participant of event.participants) {
-      const user = await User.findOne({ _id: participant.user_id }).select(
-        '-password -events_registered'
+      const user = await User.findOne({
+        _id: participant.user_id,
+        ...find
+      }).select(
+        '-password -events_registered -role -email -__v -facultyId -courseId'
       )
       if (user) {
-        participants.push(user)
+        participants.push({
+          _id: user._id,
+          student_code: user.student_code,
+          class_name: user.class_name,
+          full_name: user.full_name,
+          status: participant.status
+        })
       }
     }
+
+    participants.sort((a, b) => b.full_name.localeCompare(a.full_name))
+
     res.status(200).json(participants)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -183,6 +190,7 @@ const registerEvent = async (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const event = new Event(req.body)
+    event.status = 'PENDING'
     await event.save()
     res.status(201).json(event)
   } catch (error) {

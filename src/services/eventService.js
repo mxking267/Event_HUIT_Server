@@ -12,8 +12,9 @@ const checkInCheckOutService = async (eventId, userId, usedFor) => {
     const student = await UserModel.findOne({ _id: userId })
     if (!student) throw new Error('Student not found')
 
-    const event = await Event.findById(eventId)
+    const event = await Event.findOne({ _id: eventId })
     if (!event) throw new Error('Event not found')
+    console.log(event)
 
     const participant = event.participants.find(
       (p) => p.user_id.toString() === student._id.toString()
@@ -21,6 +22,7 @@ const checkInCheckOutService = async (eventId, userId, usedFor) => {
     if (!participant) {
       throw new Error('User not registered for the event')
     }
+    console.log(event.participants)
 
     if (usedFor == 'CHECK_IN') {
       if (participant.status === 'CHECKED_IN') {
@@ -49,7 +51,10 @@ const checkInCheckOutService = async (eventId, userId, usedFor) => {
 }
 
 const getEventService = async (role, userId, find, limitItem, skip) => {
-  const events = await Event.find(find).limit(limitItem).skip(skip)
+  const events = await Event.find(find)
+    .sort({ date: -1 })
+    .limit(limitItem)
+    .skip(skip)
 
   if (role === 'ADMIN' || role === 'MANAGER') {
     return events
@@ -86,7 +91,10 @@ const getUserQRCodeForEvent = async (userId, eventId) => {
     if (!qr) {
       throw new Error('Cannot find QR Code')
     }
-    return qr.qr_code
+    return {
+      qr_code_cki: qr.qr_code_cki,
+      qr_code_cko: qr.qr_code_cko
+    }
   } catch (error) {
     console.error('Error fetching QR code:', error)
     throw error

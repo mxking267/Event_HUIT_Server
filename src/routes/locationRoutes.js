@@ -3,7 +3,7 @@ const locationController = require('../controllers/locationController')
 
 const router = express.Router()
 
-router.post('/create', locationController.createLocation) // Tạo mới địa điểm
+router.post('/', locationController.createLocation) // Tạo mới địa điểm
 router.get('/', locationController.getAllLocations) // Lấy tất cả địa điểm
 router.get('/:id', locationController.getLocationById) // Lấy địa điểm theo ID
 router.put('/:id', locationController.updateLocation) // Cập nhật địa điểm theo ID

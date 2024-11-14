@@ -4,11 +4,12 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 const auth = require('./src/middleware/auth')
 const apiRoutes = require('./src/routes')
-
+const bodyParser = require('body-parser')
 dotenv.config()
 
 const app = express()
-app.use(express.json())
+app.use(bodyParser.json({ limit: '10mb' }))
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
 
 app.use(
   cors({
@@ -30,6 +31,7 @@ mongoose
 
 app.use(auth)
 app.use('/api/v1', apiRoutes)
+// Đặt giới hạn tối đa cho JSON payload
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port} with cors enable`)

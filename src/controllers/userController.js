@@ -8,6 +8,7 @@ const { Course } = require('../models/courseModel')
 
 const generateHelper = require('../utils/generateRandomNumber')
 const sendMailHelper = require('../utils/sendMail')
+const { Event } = require('../models/eventModel')
 
 const registerUser = async (req, res) => {
   const {
@@ -82,7 +83,7 @@ const getUser = async (req, res) => {
 const getManager = async (req, res) => {
   try {
     const users = await User.find({ role: 'MANAGER' }).select()
-    res.status(200).json(users)
+    res.status(200).json({ data: users })
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')
@@ -262,6 +263,62 @@ const trainingPointOnSemester = async (req, res) => {
   }
 }
 
+const getRegisteredEvents = async (req, res) => {
+  try {
+    const userId = req.params.userId
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+    const eventIds = user.events_registered.map((item) => item.event_id)
+    const find = { _id: { $in: eventIds } }
+    if (req.query.status) {
+      find.status = req.query.status
+    }
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.name = regex
+    }
+    if (req.query.locationId) {
+      find.location_id = req.query.locationId
+    }
+
+    let limitItem = 8
+    let page = 1
+
+    if (req.query.page) {
+      page = req.query.page
+    }
+    const skip = (page - 1) * limitItem
+
+    const totalEvent = eventIds.length
+    const totalPages = Math.ceil(totalEvent / limitItem)
+    const events = await Event.find(find)
+      .limit(limitItem)
+      .skip(skip)
+      .sort({ date: -1 })
+
+    const eventsWithAttendanceStatus = events.map((event) => {
+      const participant = event.participants.find(
+        (p) => p.user_id.toString() === userId
+      )
+      return {
+        ...event.toObject(),
+        attendanceStatus: participant ? participant.status : null,
+        participants: undefined
+      }
+    })
+
+    res.status(200).json({
+      data: eventsWithAttendanceStatus,
+      currentPage: page,
+      totalPages
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 module.exports = {
   registerUser,
   createUser,
@@ -270,5 +327,6 @@ module.exports = {
   forgotPassword,
   otpPassword,
   resetPassword,
-  trainingPointOnSemester
+  trainingPointOnSemester,
+  getRegisteredEvents
 }

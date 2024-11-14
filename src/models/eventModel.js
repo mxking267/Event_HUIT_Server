@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+// const Image = require('./imageModel')
 
 const eventSchema = new mongoose.Schema(
   {
@@ -16,14 +17,9 @@ const eventSchema = new mongoose.Schema(
       required: true
     },
     status: {
-      type: String,
-      required: true
+      type: String
     },
-    date_start: {
-      type: Date,
-      required: true
-    },
-    date_end: {
+    date: {
       type: Date,
       required: true
     },
@@ -41,14 +37,12 @@ const eventSchema = new mongoose.Schema(
         }
       }
     ],
-    manager_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
     bonus_points: {
       type: Number,
       required: true
+    },
+    image: {
+      type: String
     }
   },
   {
