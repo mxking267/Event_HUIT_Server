@@ -238,10 +238,17 @@ const exportExcel = async (req, res) => {
       .filter((p) => p.user_id && p.check_in_out_status === 'CHECKED_OUT')
       .map((p) => p.user_id)
 
-    console.log(userIds)
+    const userIdsNotCheckOut = event.participants
+      .filter((p) => p.user_id && p.check_in_out_status !== 'CHECKED_OUT')
+      .map((p) => p.user_id)
 
     const users = await User.find({
       _id: { $in: userIds },
+      facultyId: facultyId
+    }).select('-password -events_registered -status -role')
+
+    const usersNotCheckOut = await User.find({
+      _id: { $in: userIdsNotCheckOut },
       facultyId: facultyId
     }).select('-password -events_registered -status -role')
 
@@ -251,7 +258,8 @@ const exportExcel = async (req, res) => {
       bonus_points: event.bonus_points,
       facultys: event.belongFacultys,
       NumOfRegistration: event.participants.length,
-      users: users
+      users: users,
+      usersNotCheckOut: usersNotCheckOut
     })
   } catch (error) {
     res.status(500).json({ error: error.message })
