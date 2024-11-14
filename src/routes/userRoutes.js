@@ -10,9 +10,11 @@ const {
   getRegisteredEvents
 } = require('../controllers/userController')
 
+const authAdmin = require('../middleware/authAdmin')
+
 const router = express.Router()
 router.get('/', getUser)
-router.get('/manager', getManager)
+router.get('/manager', authAdmin, getManager)
 router.post('/register', createUser)
 router.post('/password/forgot', forgotPassword)
 router.post('/password/otp', otpPassword)
