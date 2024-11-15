@@ -1,5 +1,6 @@
 const { Event } = require('../models/eventModel')
 const UserModel = require('../models/userModel')
+const { Course } = require('../models/courseModel')
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId
 
@@ -50,15 +51,35 @@ const checkInCheckOutService = async (eventId, userId, usedFor) => {
   }
 }
 
-const getEventService = async (role, userId, find, limitItem, skip) => {
+const getEventAdminService = async (find, limitItem, skip) => {
   const events = await Event.find(find)
     .sort({ date: -1 })
     .limit(limitItem)
     .skip(skip)
 
-  if (role === 'ADMIN' || role === 'MANAGER') {
-    return events
-  } else {
+  return events
+}
+
+const getEventUserService = async (userId, find, limitItem, skip) => {
+  const user = await UserModel.findById(userId)
+  const facultyId = user.faculty_id
+  const course = await Course.findById(user.course_id)
+
+  const modifiedFind = {
+    ...find,
+    faculty_id: facultyId
+  }
+
+  // Kiểm tra còn trong thời gian học không?
+  const endDateCourse = new Date(course.endYear, 6, 31)
+  // Lấy ngày hiện tại
+  const currentDate = new Date()
+  if (currentDate <= endDateCourse) {
+    const events = await Event.find(modifiedFind)
+      .sort({ date: -1 })
+      .limit(limitItem)
+      .skip(skip)
+
     const modifiedEvents = events.map((event) => {
       const userObjectId = new ObjectId(userId)
       const isRegistered = event.participants.some((part) => {
@@ -71,8 +92,9 @@ const getEventService = async (role, userId, find, limitItem, skip) => {
         isRegistered
       }
     })
-
     return modifiedEvents
+  } else {
+    return null
   }
 }
 
@@ -103,6 +125,7 @@ const getUserQRCodeForEvent = async (userId, eventId) => {
 
 module.exports = {
   checkInCheckOutService,
-  getEventService,
+  getEventAdminService,
+  getEventUserService,
   getUserQRCodeForEvent
 }

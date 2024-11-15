@@ -34,11 +34,11 @@ const userSchema = new mongoose.Schema({
     }
   },
   events_registered: [eventRegistrationSchema],
-  facultyId: {
+  faculty_id: {
     type: String,
     required: true
   },
-  courseId: {
+  course_id: {
     type: String,
     required: true
   },

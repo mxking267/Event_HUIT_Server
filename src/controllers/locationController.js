@@ -10,7 +10,7 @@ const createLocation = async (req, res) => {
   }
 }
 
-const getAllLocations = async (req, res) => {
+const getLocations = async (req, res) => {
   try {
     const find = {}
 
@@ -35,6 +35,15 @@ const getAllLocations = async (req, res) => {
       currentPage: page,
       totalPages
     })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const getAllLocations = async (req, res) => {
+  try {
+    const locations = await Location.find()
+    res.status(200).json(locations)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -85,5 +94,6 @@ module.exports = {
   getAllLocations,
   getLocationById,
   updateLocation,
-  deleteLocation
+  deleteLocation,
+  getLocations
 }

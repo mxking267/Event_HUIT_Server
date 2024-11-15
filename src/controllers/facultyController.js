@@ -10,7 +10,7 @@ const createFaculty = async (req, res) => {
   }
 }
 // Lấy tất cả sự kiện
-const getAllFaculties = async (req, res) => {
+const getFaculties = async (req, res) => {
   try {
     const find = {}
 
@@ -35,6 +35,15 @@ const getAllFaculties = async (req, res) => {
       currentPage: page,
       totalPages
     })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const getAllFaculties = async (req, res) => {
+  try {
+    const faculties = await Faculty.find()
+    res.status(200).json(faculties)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -80,8 +89,9 @@ const deleteFaculty = async (req, res) => {
 }
 module.exports = {
   createFaculty,
-  getAllFaculties,
+  getFaculties,
   getFacultyById,
   updateFaculty,
-  deleteFaculty
+  deleteFaculty,
+  getAllFaculties
 }

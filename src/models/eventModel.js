@@ -43,6 +43,11 @@ const eventSchema = new mongoose.Schema(
     },
     image: {
       type: String
+    },
+    faculty_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Faculty',
+      required: true
     }
   },
   {
@@ -56,7 +61,6 @@ const eventRegistrationSchema = new mongoose.Schema({
     ref: 'Event',
     required: true
   },
-  thumbnail: String,
   registration_date: {
     type: Date,
     default: Date.now

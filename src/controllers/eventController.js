@@ -3,7 +3,8 @@ const User = require('../models/userModel')
 const QRCode = require('qrcode')
 const {
   checkInCheckOutService,
-  getEventService,
+  getEventAdminService,
+  getEventUserService,
   getUserQRCodeForEvent
 } = require('../services/eventService')
 
@@ -20,26 +21,12 @@ const checkInCheckOut = async (req, res) => {
 
 const getAllEvents = async (req, res) => {
   try {
+    const { role, _id: userId } = req.user
     const find = {}
-    if (req.query.status) {
-      find.status = req.query.status
-    }
-
     if (req.query.keyword) {
       const regex = new RegExp(req.query.keyword, 'i')
       find.name = regex
     }
-
-    if (req.query.date) {
-      const date = new Date(req.query.date)
-      find.date_start = { $lte: date }
-      find.date_end = { $gte: date }
-    }
-
-    if (req.query.locationId) {
-      find.location_id = req.query.locationId
-    }
-    // End Search
 
     // Pagination
     let limitItem = 8
@@ -56,23 +43,28 @@ const getAllEvents = async (req, res) => {
     const skip = (page - 1) * limitItem
     // End Pagination
 
-    const { role, _id: userId } = req.user
     const totalItem = await Event.countDocuments(find)
 
-    if (role === 'USER') {
-      const events = await getEventService(role, userId, find, limitItem, skip)
+    if (role === 'ADMIN' || role === 'MANAGER') {
+      const events = await getEventAdminService(find, limitItem, skip)
       res.status(200).json({
         data: events,
         currentPage: page,
         totalPages: Math.ceil(totalItem / limitItem)
       })
     } else {
-      const events = await getEventService(role, null, find, limitItem, skip)
-      res.status(200).json({
-        data: events,
-        currentPage: page,
-        totalPages: Math.ceil(totalItem / limitItem)
-      })
+      const events = await getEventUserService(userId, find, limitItem, skip)
+      if (!events) {
+        res
+          .status(400)
+          .json({ message: 'User is no longer within study period' })
+      } else {
+        res.status(200).json({
+          data: events,
+          currentPage: page,
+          totalPages: Math.ceil(totalItem / limitItem)
+        })
+      }
     }
   } catch (error) {
     console.log(error)
