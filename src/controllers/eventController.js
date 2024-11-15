@@ -293,6 +293,56 @@ const registeredEvents = async (req, res) => {
   }
 }
 
+const cancelRegisterEvent = async (req, res) => {
+  try {
+    const { _id: userId } = req.user;
+    const eventId = req.params.id;
+
+    if (userId && eventId) {
+      // Kiểm tra trạng thái sự kiện
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+
+      if (event.status !== 'INITIAL') {
+        return res.status(400).json({ message: 'Cannot cancel registration. Event is happening or finished!' });
+      }
+
+      // Xóa sự kiện khỏi danh sách đã đăng ký của user
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $pull: { events_registered: { event_id: eventId } } },
+        { new: true, runValidators: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Xóa user khỏi danh sách participants của sự kiện
+      const updatedEvent = await Event.findByIdAndUpdate(
+        eventId,
+        { $pull: { participants: { user_id: userId } } },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedEvent) {
+        return res.status(404).json({ message: 'Failed to update event participants' });
+      }
+
+      // Thành công
+      return res.status(200).json({ message: 'Cancel registering event successfully!' });
+    } else {
+      return res.status(400).json({ message: 'Bad request' });
+    }
+  } catch (error) {
+    console.error('Error cancel registering event:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 module.exports = {
   getEventById,
   registerEvent,
@@ -303,5 +353,6 @@ module.exports = {
   deleteEvent,
   getQR,
   getListParticipant,
-  registeredEvents
+  registeredEvents, 
+  cancelRegisterEvent
 }
