@@ -17,7 +17,9 @@ const eventSchema = new mongoose.Schema(
       required: true
     },
     status: {
-      type: String
+      type: String,
+      enum: ['INITIAL', 'HAPPENING', 'FINISHED', 'STOPPED'],
+      default: 'PENDING'
     },
     date: {
       type: Date,

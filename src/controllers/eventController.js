@@ -54,7 +54,7 @@ const getAllEvents = async (req, res) => {
       })
     } else {
       const events = await getEventUserService(userId, find, limitItem, skip)
-      if (!events) {
+      if (events === null) {
         res
           .status(400)
           .json({ message: 'User is no longer within study period' })
@@ -73,6 +73,46 @@ const getAllEvents = async (req, res) => {
 }
 
 const getListParticipant = async (req, res) => {
+  try {
+    const find = {}
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.$or = [{ student_code: regex }, { full_name: regex }]
+    }
+
+    const eventId = req.params.eventId
+    const event = await Event.findById(eventId)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' })
+    }
+    const participants = []
+    for (const participant of event.participants) {
+      const user = await User.findOne({
+        _id: participant.user_id,
+        ...find
+      }).select(
+        '-password -events_registered -role -email -__v -facultyId -courseId'
+      )
+      if (user) {
+        participants.push({
+          _id: user._id,
+          student_code: user.student_code,
+          class_name: user.class_name,
+          full_name: user.full_name,
+          status: participant.status
+        })
+      }
+    }
+
+    participants.sort((a, b) => b.full_name.localeCompare(a.full_name))
+
+    res.status(200).json(participants)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+const getAllParticipant = async (req, res) => {
   try {
     const find = {}
     if (req.query.keyword) {
@@ -287,18 +327,20 @@ const registeredEvents = async (req, res) => {
 
 const cancelRegisterEvent = async (req, res) => {
   try {
-    const { _id: userId } = req.user;
-    const eventId = req.params.id;
+    const { _id: userId } = req.user
+    const eventId = req.params.id
 
     if (userId && eventId) {
       // Kiểm tra trạng thái sự kiện
-      const event = await Event.findById(eventId);
+      const event = await Event.findById(eventId)
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: 'Event not found' })
       }
 
       if (event.status !== 'INITIAL') {
-        return res.status(400).json({ message: 'Cannot cancel registration. Event is happening or finished!' });
+        return res.status(400).json({
+          message: 'Cannot cancel registration. Event is happening or finished!'
+        })
       }
 
       // Xóa sự kiện khỏi danh sách đã đăng ký của user
@@ -306,10 +348,10 @@ const cancelRegisterEvent = async (req, res) => {
         userId,
         { $pull: { events_registered: { event_id: eventId } } },
         { new: true, runValidators: true }
-      );
+      )
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User not found' })
       }
 
       // Xóa user khỏi danh sách participants của sự kiện
@@ -317,23 +359,26 @@ const cancelRegisterEvent = async (req, res) => {
         eventId,
         { $pull: { participants: { user_id: userId } } },
         { new: true, runValidators: true }
-      );
+      )
 
       if (!updatedEvent) {
-        return res.status(404).json({ message: 'Failed to update event participants' });
+        return res
+          .status(404)
+          .json({ message: 'Failed to update event participants' })
       }
 
       // Thành công
-      return res.status(200).json({ message: 'Cancel registering event successfully!' });
+      return res
+        .status(200)
+        .json({ message: 'Cancel registering event successfully!' })
     } else {
-      return res.status(400).json({ message: 'Bad request' });
+      return res.status(400).json({ message: 'Bad request' })
     }
   } catch (error) {
-    console.error('Error cancel registering event:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error('Error cancel registering event:', error)
+    return res.status(500).json({ message: 'Internal server error' })
   }
-};
-
+}
 
 module.exports = {
   getEventById,
@@ -345,6 +390,7 @@ module.exports = {
   deleteEvent,
   getQR,
   getListParticipant,
-  registeredEvents, 
-  cancelRegisterEvent
+  registeredEvents,
+  cancelRegisterEvent,
+  getAllParticipant
 }

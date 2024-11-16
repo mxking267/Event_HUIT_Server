@@ -9,7 +9,7 @@ const {
   checkInCheckOut,
   getQR,
   getListParticipant,
-  registeredEvents, 
+  registeredEvents,
   cancelRegisterEvent
 } = require('../controllers/eventController')
 

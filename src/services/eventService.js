@@ -70,9 +70,7 @@ const getEventUserService = async (userId, find, limitItem, skip) => {
     faculty_id: facultyId
   }
 
-  // Kiểm tra còn trong thời gian học không?
   const endDateCourse = new Date(course.endYear, 6, 31)
-  // Lấy ngày hiện tại
   const currentDate = new Date()
   if (currentDate <= endDateCourse) {
     const events = await Event.find(modifiedFind)

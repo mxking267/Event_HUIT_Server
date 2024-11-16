@@ -228,7 +228,7 @@ const trainingPointOnSemester = async (req, res) => {
     }
 
     // Lấy thông tin khóa học của sinh viên để xác định năm bắt đầu
-    const course = await Course.findById(user.courseId)
+    const course = await Course.findById(user.course_id)
     const startYear = course.startYear
 
     // Mảng lưu kết quả cuối cùng

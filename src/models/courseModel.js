@@ -1,19 +1,19 @@
 const mongoose = require('mongoose')
 const courseSchema = new mongoose.Schema(
   {
-    course_name: {
+    courseName: {
       type: String,
       required: true
     },
-    course_id: {
+    courseId: {
       type: Number,
       required: true
     },
-    start_year: {
+    startYear: {
       type: Number,
       required: true
     },
-    end_year: {
+    endYear: {
       type: Number,
       required: true
     }
