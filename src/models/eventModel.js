@@ -8,8 +8,7 @@ const eventSchema = new mongoose.Schema(
       required: true
     },
     description: {
-      type: String,
-      required: true
+      type: String
     },
     location_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -48,8 +47,7 @@ const eventSchema = new mongoose.Schema(
     },
     faculty_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Faculty',
-      required: true
+      ref: 'Faculty'
     }
   },
   {

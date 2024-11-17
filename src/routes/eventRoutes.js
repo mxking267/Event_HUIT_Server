@@ -38,7 +38,13 @@ router.post(
 ) // Tạo mới sự kiện
 router.get('/detail/:id', getEventById) // Lấy sự kiện theo ID
 router.get('/qr/:id', getQR) // Lấy QR sự kiện theo ID
-router.patch('/edit/:id', authAdminManager, updateEvent) // Cập nhật sự kiện theo ID
+router.patch(
+  '/edit/:id',
+  authAdminManager,
+  upload.single('image'),
+  uploadCloud.uploadSingle,
+  updateEvent
+) // Cập nhật sự kiện theo ID
 router.delete('/delete/:id', authAdmin, deleteEvent) // Xóa sự kiện theo ID
 router.patch('/register/:id', registerEvent) // Đăng ký sự kiện
 router.patch('/cancel-register/:id', cancelRegisterEvent) // Huỷ đăng ký sự kiện
