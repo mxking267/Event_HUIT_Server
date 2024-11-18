@@ -11,33 +11,43 @@ const sendMailHelper = require('../utils/sendMail')
 const { Event } = require('../models/eventModel')
 
 const registerUser = async (req, res) => {
-  const {
-    email,
-    password,
-    student_code,
-    class_name,
-    full_name,
-    facultyId,
-    courseId
-  } = req.body
-  console.log(req.body)
-  const data = await createUserService(
-    email,
-    password,
-    student_code,
-    class_name,
-    full_name,
-    facultyId,
-    courseId
-  )
-  return res.status(200).json(data)
+  try {
+    console.log(req.body)
+    const {
+      email,
+      password,
+      student_code,
+      class_name,
+      full_name,
+      faculty_id,
+      course_id
+    } = req.body
+    const data = await createUserService(
+      email,
+      password,
+      student_code,
+      class_name,
+      full_name,
+      'USER',
+      faculty_id,
+      course_id
+    )
+    return res.status(200).json(data)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json('Internal server error')
+  }
 }
 
 const createUser = async (req, res) => {
-  const { email, password, full_name } = req.body
-  console.log(req.body)
-  const data = await createUserService(email, password, full_name, 'MANAGER')
-  return res.status(200).json(data)
+  try {
+    const { email, password, full_name } = req.body
+    const data = await createUserService(email, password, full_name, 'MANAGER')
+    return res.status(200).json(data)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json('Internal server error')
+  }
 }
 
 const getUser = async (req, res) => {
@@ -46,7 +56,11 @@ const getUser = async (req, res) => {
 
     if (req.query.keyword) {
       const regex = new RegExp(req.query.keyword, 'i')
-      find.name = regex
+      find.$or = [
+        { full_name: regex },
+        { email: regex },
+        { student_code: regex }
+      ]
     }
 
     let limitItem = 8
@@ -60,6 +74,7 @@ const getUser = async (req, res) => {
       limitItem = req.query.limitItem
     }
 
+    find.role = 'USER'
     const skip = (page - 1) * limitItem
 
     const totalUsers = await User.countDocuments(find)
@@ -82,8 +97,39 @@ const getUser = async (req, res) => {
 
 const getManager = async (req, res) => {
   try {
-    const users = await User.find({ role: 'MANAGER' }).select()
-    res.status(200).json({ data: users })
+    const find = {}
+
+    if (req.query.keyword) {
+      const regex = new RegExp(req.query.keyword, 'i')
+      find.$or = [{ full_name: regex }, { email: regex }]
+    }
+
+    let limitItem = 8
+    let page = 1
+
+    if (req.query.page) {
+      page = req.query.page
+    }
+
+    if (req.query.limitItem) {
+      limitItem = req.query.limitItem
+    }
+
+    find.role = 'MANAGER'
+    const skip = (page - 1) * limitItem
+
+    const totalUsers = await User.countDocuments(find)
+
+    const totalPages = Math.ceil(totalUsers / limitItem)
+
+    // Lấy danh sách người dùng theo phân trang
+    const users = await User.find(find).limit(limitItem).skip(skip)
+
+    res.status(200).json({
+      data: users,
+      currentPage: page,
+      totalPages
+    })
   } catch (error) {
     console.log(error)
     return res.status(500).json('Internal server error')

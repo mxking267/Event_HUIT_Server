@@ -10,7 +10,8 @@ const {
   getQR,
   getListParticipant,
   registeredEvents,
-  cancelRegisterEvent
+  cancelRegisterEvent,
+  updateEventStatus
 } = require('../controllers/eventController')
 
 const authAdmin = require('../middleware/authAdmin')
@@ -49,5 +50,6 @@ router.delete('/delete/:id', authAdmin, deleteEvent) // Xóa sự kiện theo ID
 router.patch('/register/:id', registerEvent) // Đăng ký sự kiện
 router.patch('/cancel-register/:id', cancelRegisterEvent) // Huỷ đăng ký sự kiện
 router.post('/check-in-out', authAdminManager, checkInCheckOut) // Check-in sự kiện
+router.put('/:id/status', authAdminManager, updateEventStatus) // Check-in sự kiện
 
 module.exports = router

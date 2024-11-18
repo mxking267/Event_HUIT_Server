@@ -218,6 +218,41 @@ const registerEvent = async (req, res) => {
   }
 }
 
+const updateEventStatus = async (req, res) => {
+  try {
+    const { id } = req.params // Lấy ID của sự kiện từ params
+    const { status } = req.body // Lấy trạng thái mới từ body
+
+    // Danh sách trạng thái hợp lệ
+    const validStatuses = ['INITIAL', 'HAPPENING', 'FINISHED', 'STOPPED']
+
+    // Kiểm tra trạng thái có hợp lệ không
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' })
+    }
+
+    // Tìm và cập nhật trạng thái sự kiện
+    const event = await Event.findByIdAndUpdate(
+      id,
+      { status }, // Cập nhật trạng thái mới
+      { new: true } // Trả về sự kiện sau khi cập nhật
+    )
+
+    // Kiểm tra sự kiện có tồn tại không
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' })
+    }
+
+    return res.status(200).json({
+      message: 'Event status updated successfully',
+      event
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 // Tạo sự kiện mới
 const createEvent = async (req, res) => {
   try {
@@ -392,5 +427,6 @@ module.exports = {
   getListParticipant,
   registeredEvents,
   cancelRegisterEvent,
-  getAllParticipant
+  getAllParticipant,
+  updateEventStatus
 }

@@ -47,7 +47,8 @@ const eventSchema = new mongoose.Schema(
     },
     faculty_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Faculty'
+      ref: 'Faculty',
+      require: false
     }
   },
   {
