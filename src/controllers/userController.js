@@ -83,34 +83,40 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found!' })
     }
 
-    // Check if the email already exists (excluding the current user)
-    const existingEmail = await User.findOne({ email, _id: { $ne: id } })
-    if (existingEmail) {
-      return res.status(400).json({ message: 'Email already exists!' })
+    // Check if the email is changing and if it's already taken by another user (excluding current user)
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ email, _id: { $ne: id } })
+      if (existingEmail) {
+        return res.status(400).json({ message: 'Email already exists!' })
+      }
     }
 
-    // Check if the student_code already exists (excluding the current user)
-    const existingStudentCode = await User.findOne({
-      student_code,
-      _id: { $ne: id }
-    })
-    if (existingStudentCode) {
-      return res.status(400).json({ message: 'Student code already exists!' })
+    // Check if the student_code is changing and if it's already taken by another user (excluding current user)
+    if (student_code && student_code !== user.student_code) {
+      const existingStudentCode = await User.findOne({
+        student_code,
+        _id: { $ne: id }
+      })
+      if (existingStudentCode) {
+        return res.status(400).json({ message: 'Student code already exists!' })
+      }
     }
 
     // Update user fields
-    user.email = email || user.email
-    user.password = password ? await bcrypt.hash(password, 10) : user.password
-    user.student_code = student_code || user.student_code
-    user.class_name = class_name || user.class_name
-    user.full_name = full_name || user.full_name
-    user.faculty_id = faculty_id || user.faculty_id
-    user.course_id = course_id || user.course_id
+    if (email) user.email = email
+    if (password) user.password = await bcrypt.hash(password, 10)
+    if (student_code) user.student_code = student_code
+    if (class_name) user.class_name = class_name
+    if (full_name) user.full_name = full_name
+    if (faculty_id) user.faculty_id = faculty_id
+    if (course_id) user.course_id = course_id
 
     // Save updated user to database
-    await user.save()
+    const newUser = await User.findByIdAndUpdate(id, user, { new: true })
 
-    res.status(200).json({ message: 'User updated successfully!', data: user })
+    res
+      .status(200)
+      .json({ message: 'User updated successfully!', data: newUser })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: 'Internal server error' })
@@ -119,11 +125,11 @@ const updateUser = async (req, res) => {
 
 const updateManager = async (req, res) => {
   try {
-    const { managerId } = req.params // Manager ID from URL parameters
+    const { id } = req.params // Manager ID from URL parameters
     const { email, password, full_name } = req.body
 
     // Check if the manager exists
-    const manager = await User.findById(managerId)
+    const manager = await User.findById(id)
     if (!manager) {
       return res.status(404).json({ message: 'Manager not found!' })
     }
@@ -133,25 +139,30 @@ const updateManager = async (req, res) => {
       return res.status(400).json({ message: 'This user is not a manager!' })
     }
 
-    // Check if the email already exists (excluding the current manager)
-    const existingEmail = await User.findOne({ email, _id: { $ne: managerId } })
-    if (existingEmail) {
-      return res.status(400).json({ message: 'Email already exists!' })
+    // Check if the email is changing and if it's already taken by another manager (excluding current manager)
+    if (email && email !== manager.email) {
+      const existingEmail = await User.findOne({
+        email,
+        _id: { $ne: id }
+      })
+      if (existingEmail) {
+        return res.status(400).json({ message: 'Email already exists!' })
+      }
     }
 
     // Update manager fields
-    manager.email = email || manager.email
-    manager.password = password
-      ? await bcrypt.hash(password, 10)
-      : manager.password
-    manager.full_name = full_name || manager.full_name
+    if (email) manager.email = email
+    if (password) manager.password = await bcrypt.hash(password, 10)
+    if (full_name) manager.full_name = full_name
 
     // Save updated manager to database
-    await manager.save()
+    const updatedManager = await User.findByIdAndUpdate(id, manager, {
+      new: true
+    })
 
     res
       .status(200)
-      .json({ message: 'Manager updated successfully!', data: manager })
+      .json({ message: 'Manager updated successfully!', data: updatedManager })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: 'Internal server error' })
