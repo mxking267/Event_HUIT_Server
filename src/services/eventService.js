@@ -75,17 +75,14 @@ const getEventUserService = async (userId, find, limitItem, skip) => {
       .limit(limitItem)
       .skip(skip)
 
-    console.log(events)
-
     const modifiedEvents = events
       .map((event) => {
         const userObjectId = new ObjectId(userId)
         const isRegistered = event.participants.some((part) => {
           return part.user_id.equals(userObjectId)
         })
-
         const isValidFaculty =
-          !event.faculty_id || event.faculty_id === facultyId
+          !event.faculty_id || event.faculty_id._id == facultyId
 
         if (isValidFaculty) {
           return {
