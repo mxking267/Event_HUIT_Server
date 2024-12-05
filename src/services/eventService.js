@@ -61,41 +61,48 @@ const getEventAdminService = async (find, limitItem, skip) => {
   return events
 }
 
-const getEventUserService = async (userId, find, limitItem, skip) => {
+const getEventUserService = async (userId, find) => {
+  // Lấy thông tin người dùng và khóa học
   const user = await UserModel.findById(userId)
   const facultyId = user.faculty_id
   const course = await Course.findById(user.course_id)
 
+  // Kiểm tra ngày kết thúc khóa học
   const endDateCourse = new Date(course.endYear, 6, 31)
   const currentDate = new Date()
+
   if (currentDate <= endDateCourse) {
-    const events = await Event.find(find)
+    // Tạo đối tượng findQuery với các điều kiện từ find
+    const findQuery = { ...find }
+
+    // Truy vấn sự kiện với các điều kiện findQuery, sắp xếp và phân trang
+    const events = await Event.find(findQuery)
       .populate('faculty_id', 'name')
       .sort({ date: -1 })
-      .limit(limitItem)
-      .skip(skip)
 
-    const modifiedEvents = events
-      .map((event) => {
-        const userObjectId = new ObjectId(userId)
-        const isRegistered = event.participants.some((part) => {
-          return part.user_id.equals(userObjectId)
-        })
-        const isValidFaculty =
-          !event.faculty_id || event.faculty_id._id == facultyId
+    // Xử lý sự kiện sau khi truy vấn
+    const modifiedEvents = events.map((event) => {
+      const userObjectId = new ObjectId(userId)
 
-        if (isValidFaculty) {
-          return {
-            ...event.toObject(),
-            participants: undefined,
-            isRegistered
-          }
+      const isValidFaculty =
+        !event.faculty_id || event.faculty_id._id == facultyId
+
+      // Kiểm tra người dùng đã đăng ký chưa
+      const isRegistered = event.participants.some((part) =>
+        part.user_id.equals(userObjectId)
+      )
+
+      if (isValidFaculty) {
+        return {
+          ...event.toObject(),
+          participants: undefined,
+          isRegistered
         }
+      }
 
-        // Nếu faculty_id của event không hợp lệ, không trả sự kiện này
-        return null
-      })
-      .filter((event) => event !== null)
+      return null
+    })
+
     return modifiedEvents
   } else {
     return null

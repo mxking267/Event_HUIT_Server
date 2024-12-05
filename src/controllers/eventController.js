@@ -7,6 +7,7 @@ const {
   getEventUserService,
   getUserQRCodeForEvent
 } = require('../services/eventService')
+const UserModel = require('../models/userModel')
 
 const checkInCheckOut = async (req, res) => {
   try {
@@ -22,6 +23,8 @@ const checkInCheckOut = async (req, res) => {
 const getAllEvents = async (req, res) => {
   try {
     const { role, _id: userId } = req.user
+    const user = await UserModel.findById(userId)
+    const facultyId = user.faculty_id
     const find = {}
     if (req.query.keyword) {
       const regex = new RegExp(req.query.keyword, 'i')
@@ -45,7 +48,7 @@ const getAllEvents = async (req, res) => {
     if (req.query.faculty_id) {
       if (req.query.faculty_id === 'all') {
         find.faculty_id = null // Toàn trường
-      } else {
+      } else if (req.query.faculty_id !== 'faculty') {
         find.faculty_id = req.query.faculty_id
       }
     }
@@ -76,15 +79,27 @@ const getAllEvents = async (req, res) => {
       })
     } else {
       const events = await getEventUserService(userId, find, limitItem, skip)
+      const filterEvents = events.filter((item) => item !== null)
+      let result
+      if (req.query.faculty_id && req.query.faculty_id === 'faculty') {
+        result = filterEvents.filter((item) =>
+          item.faculty_id ? item.faculty_id._id == facultyId : false
+        )
+      } else {
+        result = filterEvents
+      }
+
+      const paginatedEvents = result.slice(skip, skip + limitItem)
+
       if (events === null) {
         res
           .status(400)
           .json({ message: 'User is no longer within study period' })
       } else {
         res.status(200).json({
-          data: events,
+          data: paginatedEvents,
           currentPage: page,
-          totalPages: Math.ceil(events.length / limitItem)
+          totalPages: Math.ceil(result.length / limitItem)
         })
       }
     }
